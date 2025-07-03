@@ -1,0 +1,27 @@
+<div class="container my-5">
+  <div class="card shadow rounded-4">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Asignar gastos a una actividad existente</h5>
+
+      <!-- Select de actividades -->
+      <div class="mb-4">
+        <label for="selectActividad" class="form-label">Seleccione una actividad:</label>
+        <select id="selectActividad" class="form-select" required>
+          <option value="">-- Selecciona una actividad --</option>
+          <!-- Opciones dinámicas -->
+        </select>
+      </div>
+
+      <!-- Formulario de gastos (se muestra después de elegir actividad) -->
+      <form id="formGastos" style="display: none;">
+        <div id="gastosContainer"></div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-primary">Guardar gastos</button>
+          <button type="button" id="btnAtras" class="btn btn-secondary">Atrás</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="/assets/js/admin/asigGasto.js"></script>

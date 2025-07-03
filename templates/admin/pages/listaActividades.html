@@ -1,0 +1,67 @@
+ <div class="col-12 text-end">
+    <button id ="atrasLista" class="btn btn-info">Atras</button>
+</div>
+<div class="container my-4">
+  <h4 class="mb-4">Lista de Actividades</h4>
+  <table class="table table-bordered table-hover" id="tablaActividades">
+    <thead class="table-light">
+      <tr>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Fecha</th>
+        <th>Unidades</th>
+        <th>Precio Unidad</th>
+        <th>Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Aquí se insertan las filas dinámicamente -->
+    </tbody>
+  </table>
+</div>
+<!-- Modal para Editar Actividad -->
+<div class="modal fade" id="modalEditarActividad" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarLabel">Editar Actividad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarActividad">
+          <input type="hidden" id="edit-id">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="edit-nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="edit-nombre" required>
+            </div>
+            <div class="col-md-6">
+              <label for="edit-descripcion" class="form-label">Descripción</label>
+              <input type="text" class="form-control" id="edit-descripcion" required>
+            </div>
+            <div class="col-md-6">
+              <label for="edit-fecha" class="form-label">Fecha</label>
+              <input type="date" class="form-control" id="edit-fecha" required>
+            </div>
+            <div class="col-md-6">
+              <label for="edit-cantUnidades" class="form-label">Unidades</label>
+              <input type="number" class="form-control" id="edit-cantUnidades" required>
+            </div>
+            <div class="col-md-6">
+              <label for="edit-precioUnidad" class="form-label">Precio Unidad</label>
+              <input type="number" class="form-control" id="edit-precioUnidad" step="0.01" required>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" form="formEditarActividad" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="/assets/js/admin/listaActividades.js"></script>

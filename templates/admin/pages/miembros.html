@@ -1,0 +1,59 @@
+<div class="container my-4">
+  <div class="card shadow rounded-4">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Registro de Miembros</h5>
+      <form id="formMiembro">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="cc" class="form-label">Cédula (CC)</label>
+            <input type="text" class="form-control" id="cc" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+            <input type="date" class="form-control" id="fechaNacimiento" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="celular" class="form-label">Celular</label>
+            <input type="tel" class="form-control" id="celular" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="email" required>
+          </div>
+
+          <div class="col-md-6">
+            <label for="tipoMiembro" class="form-label">Tipo de miembro</label>
+            <select class="form-select" id="tipoMiembro" required>
+              <option value="" disabled selected>Seleccione...</option>
+              <option value="activo">Bautizado</option>
+              <option value="nuevo">Probante</option>
+              <option value="visitante">Visita</option>
+              <option value="lider">Líder</option>
+              <option value="pastor">Pastor</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+
+          <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button id ="atras" class="btn btn-warning">Atras</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="/assets/js/admin/miembros.js"></script>
+</div>
