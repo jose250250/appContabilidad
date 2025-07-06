@@ -1,0 +1,23 @@
+ <div class="col-12 text-end">
+    <button id ="atrasPagos" class="btn btn-info">Atras</button>
+</div>
+  <h2 class="mb-4">Historial de pagos por miembro</h2>
+
+  <div class="mb-3">
+    <label for="selectMiembro" class="form-label">Selecciona un miembro:</label>
+    <select id="selectMiembro" class="form-select">
+      <option value="">-- Selecciona un miembro --</option>
+    </select>
+  </div>
+
+  <table id="tablaHistorialPagos" class="table table-bordered table-striped d-none">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Actividad</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <script src="/assets/js/admin/historialPagos.js"></script>

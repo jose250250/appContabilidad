@@ -37,7 +37,6 @@ $("#tablaMiembros").on("click", ".btn-editar", function () {
         $("#edit-apellido").val(m.apellido);
         $("#edit-cc").val(m.cc);
         $("#edit-celular").val(m.celular);
-        $("#edit-email").val(m.email);
         $("#edit-tipoMiembro").val(m.tipoMiembro);
 
         $("#modalEditarMiembro").modal("show"); // abrir modal
@@ -54,7 +53,6 @@ $("#btnActualizarMiembro").on("click", function () {
     apellido: $("#edit-apellido").val(),
     cc: $("#edit-cc").val(),
     celular: $("#edit-celular").val(),
-    email: $("#edit-email").val(),
     tipoMiembro: $("#edit-tipoMiembro").val(),
   };
 

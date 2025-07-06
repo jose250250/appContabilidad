@@ -8,6 +8,10 @@ $(function(){
  })
    $("#btnAgregarGasto").click(function(){
     loadPage("asigGasto", "admin/");
+   })  
+
+   $("#btnDistActividades").click(function(){
+    loadPage("distActividades", "admin/");    
  })
     $("#btnAtras").click(function(){
     loadPage("homeAdmin");

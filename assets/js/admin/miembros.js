@@ -6,9 +6,7 @@
         nombre: $("#nombre").val(),
         apellido: $("#apellido").val(),
         cc: $("#cc").val(),
-        fechaNacimiento: $("#fechaNacimiento").val(),
         celular: $("#celular").val(),
-        email: $("#email").val(),
         tipoMiembro: $("#tipoMiembro").val(),
         fechaRegistro: firebase.firestore.Timestamp.now()
       };

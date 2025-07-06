@@ -1,0 +1,33 @@
+<div class="container mt-4">
+ 
+
+  <div class="card p-3 mb-4" id="estadoFondo">
+     <h3>Estado del Fondo de Actividades</h3>
+    <h5>Entradas</h5>
+    <p>Total entradas manuales: <strong id="entradasManuales">$0</strong></p>
+    <p>Total por actividades: <strong id="entradasActividades">$0</strong></p>
+    <p class="text-success">Total entradas: <strong id="totalEntradas">$0</strong></p>
+
+    <hr>
+
+    <h5>Salidas</h5>
+    <p>Total salidas manuales: <strong id="salidasManuales">$0</strong></p>
+    <p>Total gastos actividades: <strong id="gastosActividades">$0</strong></p>
+    <p class="text-danger">Total salidas: <strong id="totalSalidas">$0</strong></p>
+
+    <hr>
+
+    <h5>Saldo del Fondo</h5>
+    <p>Saldo real: <strong id="saldoFondo">$0</strong></p>
+    <p>Dinero en efectivo (pagado): <strong id="dineroEfectivo">$0</strong></p>
+    <p>Deudas por cobrar: <strong id="deudasPendientes">$0</strong></p>
+  </div>
+</div>
+<div class="d-flex gap-2">
+ <button type="button" id="atras" class="btn btn-warning">atras</button>
+ <button class="btn btn-primary" onclick="window.print()">🖨 Imprimir</button>
+ <button class="btn btn-danger" onclick="descargarEstadoPDF()">📄 Descargar PDF</button>
+</div>
+
+
+<script src="/assets/js/admin/estadoFondo.js"></script>

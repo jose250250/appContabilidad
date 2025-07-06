@@ -1,0 +1,40 @@
+<body class="p-4">
+
+  <div class="container">
+    <h3 class="mb-4">Asignar Cantidades por Actividad</h3>
+     <div class="col-12 text-end">
+    <button id ="atras" class="btn btn-info">Atras</button>
+    </div>
+
+    <div class="mb-4">
+      <label for="selectActividad" class="form-label">Seleccione una actividad:</label>
+      <select id="selectActividad" class="form-select" required>
+        <option value="">-- Seleccione una actividad --</option>
+      </select>
+    </div>
+
+    <form id="formAsignaciones" style="display: none;">
+   <table class="table" id="tablaMiembros">
+   <thead>
+    <tr>
+      <th>Miembro</th>
+      <th>Cantidad</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody></tbody> <!-- Aquí se colocarán los miembros dinámicamente -->
+  <tfoot>
+    <tr>
+      <th>Total</th>
+      <th id="totalUnidades">0</th>
+      <th id="totalPlata">0.00</th>
+    </tr>
+  </tfoot>
+</table>
+
+
+      <button type="submit" class="btn btn-success">Guardar Asignaciones</button>
+    </form>
+  </div>
+  <script src="/assets/js/admin/distActividades.js"></script>
+</body>

@@ -1,0 +1,37 @@
+<body class="p-4">
+    <div class="col-12 text-end">
+    <button id ="atrasPa" class="btn btn-warning">Atras</button>
+    <button id="btnHistorialPagos" class="btn btn-info mt-3">Ver historial de pagos</button>
+    </div>
+    
+
+
+
+  <h3 class="mb-4">Realizar Pagos</h3>
+  <div class="mb-3">
+  <label for="miembrosSelect" class="form-label">Seleccionar miembro:</label>
+  <select id="miembrosSelect" class="form-select">
+    <option value="">Cargando miembros...</option>
+  </select>
+</div>
+  
+  <!-- Contenedor de miembros -->
+  <div id="miembrosContainer" class="d-flex flex-wrap gap-2 mb-4"></div>
+
+  <!-- Tabla de deudas -->
+  <table class="table table-bordered table-striped d-none" id="tablaDeudas">
+<thead class="table-dark">
+  <tr>
+    <th>Fecha</th>
+    <th>Actividad</th>
+    <th>Deuda</th>
+    <th>Pagos</th>
+    <th>Debe</th>
+    <th>opciones</th> <!-- NUEVA COLUMNA -->
+  </tr>
+</thead>
+<tbody></tbody>
+<script src="/assets/js/admin/pagos.js"></script>
+
+
+</body>
