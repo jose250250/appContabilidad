@@ -163,9 +163,9 @@ async function cargarActividades() {
       const fila = `
         <tr data-id="${actividadId}">
           <td>${a.nombre}  (${a.fecha})</td>
-          <td>${a.total}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-          <td>$${ganancia.toFixed(2)}</td>
+          <td>$${a.total}</td>
+          <td>$${totalGastos}</td>
+          <td>$${ganancia}</td>
           <td>
              <button class="btn btn-sm btn-warning btn-editar m-1">Editar</button>
              <button class="btn btn-danger btn-sm btn-eliminar m-1">Eliminar</button>
@@ -672,9 +672,9 @@ async function cargarActividadesU() {
       const fila = `
       <tr data-id="${actividadId}">
           <td>${a.nombre}  (${a.fecha})</td>
-          <td>${a.total}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-          <td>$${ganancia.toFixed(2)}</td>
+          <td>$${a.total}</td>
+          <td>$${totalGastos}</td>
+          <td>$${ganancia}</td>
         </tr>
       `;
 
