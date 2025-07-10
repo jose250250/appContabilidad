@@ -1,0 +1,56 @@
+<div class="container mt-4">
+  <h3 class="mb-3">Lista de Salidas del Fondo</h3>
+  <table class="table table-bordered" id="tablaSalidas">
+    <thead class="table-dark">
+      <tr>
+        <th>Fecha</th>
+        <th>Motivo</th>
+        <th>Cantidad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr class="fw-bold table-secondary">
+        <td colspan="2" class="text-end">Total Salidas:</td>
+        <td id="totalSalidas">$0.00</td>
+      </tr>
+    </tfoot>
+  </table>
+    <div class="col-12 text-end">
+    <button id ="atras" class="btn btn-info">Atras</button>
+  </div>
+</div>
+
+<!-- Modal de edición -->
+<div class="modal fade" id="modalEditarSalida" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formEditarSalida" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarLabel">Editar Salida</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editarSalidaId">
+        <div class="mb-3">
+          <label for="editarFecha" class="form-label">Fecha</label>
+          <input type="date" class="form-control" id="editarFecha" required>
+        </div>
+        <div class="mb-3">
+          <label for="editarMotivo" class="form-label">Motivo</label>
+          <input type="text" class="form-control" id="editarMotivo" required>
+        </div>
+        <div class="mb-3">
+          <label for="editarCantidad" class="form-label">Cantidad</label>
+          <input type="number" step="0.01" class="form-control" id="editarCantidad" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/assets/js/admin/listaSalidas.js"></script>

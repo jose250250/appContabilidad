@@ -1,32 +1,31 @@
- <div class="col-12 text-end">
-    <button id ="atrasLista" class="btn btn-info">Atras</button>
-</div>
+
 <div class="container my-4">
   <h4 class="mb-4">Lista de Actividades</h4>
-  <table class="table table-bordered table-hover text-center" id="tablaActividades">
+<table class="table table-bordered table-hover text-center" id="tablaActividades">
  <thead>
   <tr>
-    <th>Fecha</th>
-    <th>Nombre</th>
-    <th>Descripción</th>
-    <th>Cantidad</th>
-    <th>$ Unidad</th>
-    <th>Total</th>
-    <th>Gastos</th>
-    <th>Ganancia</th> <!-- Nueva columna -->
-    <th>Acciones</th>
+    <th>Actividad</th>
+    <th>Valor</th>
+    <th>Gasto</th>
+    <th>Ganancia</th>
+    <th>Opciones</th>
   </tr>
 </thead>
 <tbody></tbody>
 <tfoot>
   <tr>
-    <td colspan="7" class="text-end fw-bold">Total Ganancias:</td>
+    <td colspan="3" class="text-end fw-bold">Total Ganancias:</td>
     <td id="totalGanancias" class="fw-bold text-success">$0.00</td>
     <td></td>
   </tr>
 </tfoot>
-
+</table>
+<div class="col-12 text-end">
+   <button id ="atrasLista" class="btn btn-info">Atras</button>
 </div>
+</div>
+
+
 <!-- Modal para Editar Actividad -->
 <div class="modal fade" id="modalEditarActividad" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">

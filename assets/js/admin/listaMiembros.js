@@ -4,21 +4,43 @@
      cargarMiembros();
 
     // Evento Eliminar
-    $("#tablaMiembros").on("click", ".btn-eliminar", function () {
-      const id = $(this).closest("tr").data("id");
-      if (confirm("¿Estás seguro de eliminar este miembro?")) {
-        firebase.firestore().collection("miembros").doc(id).delete()
-          .then(() => {
-            $(this).closest("tr").remove();
-            alert("Miembro eliminado.");
-            cargarMiembros();
-          })
-          .catch((error) => {
-            console.error("Error al eliminar:", error);
-            alert("No se pudo eliminar el miembro.");
-          });
+$("#tablaMiembros").on("click", ".btn-eliminar", async function () {
+  const row = $(this).closest("tr");
+  const idMiembro = row.data("id");
+
+  try {
+    // Obtener todas las actividades
+    const actividadesSnapshot = await firebase.firestore().collection("actividades").get();
+
+    let tieneAsignaciones = false;
+
+    for (const actividadDoc of actividadesSnapshot.docs) {
+      const miembroDoc = await actividadDoc.ref.collection("miembrosActividad").doc(idMiembro).get();
+      if (miembroDoc.exists) {
+        tieneAsignaciones = true;
+        break; // No necesitamos seguir buscando
       }
-    });
+    }
+
+    if (tieneAsignaciones) {
+      alert("Este miembro tiene asignaciones y no se puede eliminar.");
+      return;
+    }
+
+    // Si no tiene asignaciones, confirmar eliminación
+    if (confirm("¿Estás seguro de eliminar este miembro?")) {
+      await firebase.firestore().collection("miembros").doc(idMiembro).delete();
+      row.remove();
+      alert("Miembro eliminado.");
+      cargarMiembros();
+    }
+
+  } catch (error) {
+    console.error("Error al verificar asignaciones:", error);
+    alert("Ocurrió un error al verificar asignaciones.");
+  }
+});
+
 
 
   let idEditar = null;

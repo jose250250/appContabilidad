@@ -1,0 +1,67 @@
+<div class="container mt-4">
+
+  <!-- Selector de actividades y botones -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <label for="selectActividad" class="form-label">Seleccionar actividad:</label>
+      <select id="selectActividad" class="form-select">
+        <option value="">-- Seleccione --</option>
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <button id="btnVolver" class="btn btn-secondary">Atrás</button>
+      <button id="btnVerTodos" class="btn btn-info">Ver todos</button>
+    </div>
+  </div>
+
+  <!-- Tabla: Deudores -->
+  <div class="card mb-4" id="cardDeudores">
+    <div class="card-header bg-danger text-white">Deudores de la actividad</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover mb-0" id="tablaDeudores">
+          <thead class="table-light">
+            <tr>
+              <th>Miembro</th>
+              <th class="text-end">Cant</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Pagado</th>
+              <th class="text-end">Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filas generadas por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla: Todos los participantes -->
+  <div class="card d-none" id="cardTodos">
+    <div class="card-header bg-secondary text-white">Todos los Miembros</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover mb-0" id="tablaTodos">
+          <thead class="table-light">
+            <tr>
+              <th>Miembro</th>
+              <th class="text-end">Cant</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Pagado</th>
+              <th class="text-end">Saldo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filas generadas por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tu archivo JS -->
+<script src="/assets/js/usuario/deudasPorActividadesU.js"></script>
+

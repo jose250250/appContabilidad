@@ -5,11 +5,11 @@ $("#btnEstado").click(function(){
 });    
  
 $("#btnEntradas").click(function(){
-     loadPage("entradasFondo", "admin/");     
+     loadPage("frontEntrada", "admin/");     
 
 })
 $("#btnSalidas").click(function(){
-     loadPage("salidasFondo", "admin/");     
+     loadPage("frontSalida", "admin/");     
 })
 $("#btnAtras").click(function(){
      loadPage("homeAdmin");

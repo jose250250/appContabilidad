@@ -1,70 +1,8 @@
-async function cargarResumenDeudas() {
-  const tablaBody = $("#tablaResumen tbody");
-  tablaBody.empty();
-
-  let totalDeudaGlobal = 0;
-  let totalPagosGlobal = 0;
-
-  const miembrosSnapshot = await db.collection("miembros").get();
-
-  for (const miembroDoc of miembrosSnapshot.docs) {
-    const miembroId = miembroDoc.id;
-    const miembro = miembroDoc.data();
-    const nombreCompleto = `${miembro.nombre} ${miembro.apellido || ""}`;
-
-    let deudaTotal = 0;
-    let pagosTotales = 0;
-
-    // 1. Buscar todas las actividades
-    const actividadesSnapshot = await db.collection("actividades").get();
-
-    for (const actividadDoc of actividadesSnapshot.docs) {
-      const actividad = actividadDoc.data();
-      const actividadId = actividadDoc.id;
-
-      const miembroActividadRef = db
-        .collection("actividades")
-        .doc(actividadId)
-        .collection("miembrosActividad")
-        .doc(miembroId);
-
-      const miembroActividadSnap = await miembroActividadRef.get();
-
-      if (miembroActividadSnap.exists) {
-        const asignacion = miembroActividadSnap.data();
-        const cantidad = asignacion.cantidad || 0;
-        const precioUnidad = actividad.precioUnidad || 0;
-        const totalPagado = asignacion.totalPagado || 0;
-
-        deudaTotal += cantidad * precioUnidad;
-        pagosTotales += totalPagado;
-      }
-    }
-
-    const saldo = deudaTotal - pagosTotales;
-
-    totalDeudaGlobal += deudaTotal;
-    totalPagosGlobal += pagosTotales;
-
-    tablaBody.append(`
-      <tr>
-        <td>${nombreCompleto}</td>
-        <td class="text-end">$${deudaTotal.toLocaleString()}</td>
-        <td class="text-end">$${pagosTotales.toLocaleString()}</td>
-        <td class="text-end">$${saldo.toLocaleString()}</td>
-      </tr>
-    `);
-  }
-
-  const totalSaldoGlobal = totalDeudaGlobal - totalPagosGlobal;
-
-  $("#totalDeuda").text(`$${totalDeudaGlobal.toLocaleString()}`);
-  $("#totalPagos").text(`$${totalPagosGlobal.toLocaleString()}`);
-  $("#totalSaldo").text(`$${totalSaldoGlobal.toLocaleString()}`);
-}
-
-// Llamar al cargar la página
+$(function(){
+  // Llamar al cargar la página
 cargarResumenDeudas();
+})
+
 $("#atrasd").click(function () {
   loadPage("frontPagos", "admin/");
 });
@@ -138,5 +76,5 @@ function imprimirTabla() {
     ventanaImpresion.close();
   }
 }
-
+ 
 

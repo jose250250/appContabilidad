@@ -35,12 +35,14 @@ $(function(){
             .collection("pagos")
             .get();
 
+         
+
           pagosSnapshot.forEach(pagoDoc => {
             const pago = pagoDoc.data();
             pagosTotales.push({
               fecha: pago.fecha?.toDate(),
               monto: pago.monto,
-              actividad: actividadData.nombre
+              actividad: `${actividadData.nombre} (${actividadData.fecha})`
             });
           });
         }

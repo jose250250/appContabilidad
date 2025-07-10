@@ -10,7 +10,7 @@
     .modulo:hover {
       transform: translateY(-5px);
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      background-color: #e9ecef;
+      background-color: #a5a8ac;
     }
 
     .modulo i {
@@ -22,3 +22,20 @@
     .modulo h5 {
       font-weight: 600;
     }
+
+    body {
+      background-color: #d1deeb;
+    }
+    .botones-container {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .botones {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 300px;
+    }    

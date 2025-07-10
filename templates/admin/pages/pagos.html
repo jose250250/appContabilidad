@@ -1,12 +1,4 @@
 <body class="p-4">
-    <div class="col-12 text-end">
-    <button id ="atrasPa" class="btn btn-warning">Atras</button>
-    <button id="btnHistorialPagos" class="btn btn-info mt-3">Ver historial de pagos</button>
-    </div>
-    
-
-
-
   <h3 class="mb-4">Realizar Pagos</h3>
   <div class="mb-3">
   <label for="miembrosSelect" class="form-label">Seleccionar miembro:</label>
@@ -16,13 +8,11 @@
 </div>
   
   <!-- Contenedor de miembros -->
-  <div id="miembrosContainer" class="d-flex flex-wrap gap-2 mb-4"></div>
-
+ <div id="miembrosContainer" class="d-flex flex-wrap gap-2 mb-4 overflow-auto">
   <!-- Tabla de deudas -->
   <table class="table table-bordered table-striped d-none" id="tablaDeudas">
 <thead class="table-dark">
   <tr>
-    <th>Fecha</th>
     <th>Actividad</th>
     <th>Deuda</th>
     <th>Pagos</th>
@@ -31,6 +21,34 @@
   </tr>
 </thead>
 <tbody></tbody>
+</table>
+<div class="col-12 d-flex justify-content-end gap-2">
+  <button id="atrasPa" class="btn btn-warning">Atras</button>
+  <button id="btnHistorialPagos" class="btn btn-info">Ver historial de pagos</button>
+</div>
+
+<!-- Modal de monto -->
+<div class="modal fade" id="modalMonto" tabindex="-1" aria-labelledby="modalMontoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formModalMonto">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalMontoLabel">Ingrese el monto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="number" step="0.01" min="0" id="inputMonto" class="form-control" required>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Aceptar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <script src="/assets/js/admin/pagos.js"></script>
 
 

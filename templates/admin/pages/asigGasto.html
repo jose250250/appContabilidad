@@ -4,18 +4,22 @@
       <h5 class="card-title mb-4">Asignar gastos a una actividad existente</h5>
 
       <!-- Select de actividades -->
-<div class="row">       
-<div class="mb-4 col-10" >
-  <label for="selectActividad" class="form-label">Seleccione una actividad:</label>
-  <select id="selectActividad" class="form-select" required>
-    <option value="">-- Selecciona una actividad --</option>
-    <!-- Opciones dinámicas -->
-  </select>
-</div>   
-<div class="mt-2 col-2">
-  <button type="button" id="atras" class="btn btn-secondary">Atrás</button>
+<div class="row">
+  <!-- Select: ocupa 12 columnas en móvil, 10 en pantallas medianas en adelante -->
+  <div class="mb-3 col-12 col-md-10">
+    <label for="selectActividad" class="form-label">Seleccione una actividad:</label>
+    <select id="selectActividad" class="form-select" required>
+      <option value="">-- Selecciona una actividad --</option>
+      <!-- Opciones dinámicas -->
+    </select>
+  </div>
+
+  <!-- Botón: ocupa 12 columnas en móvil, 2 en pantallas medianas en adelante -->
+  <div class="col-12 col-md-2 d-flex align-items-end">
+    <button type="button" id="atras" class="btn btn-secondary w-100">Atrás</button>
+  </div>
 </div>
-</div>
+
 
       <!-- Formulario de gastos (se muestra después de elegir actividad) -->
         <form id="formGastos" style="display:none;">

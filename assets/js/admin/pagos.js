@@ -14,57 +14,105 @@ $("#btnHistorialPagos").click(function(){
     loadPage("historialPagos", "admin/");
 })
 $("#atrasPa").click(function(){
+  accionPago = null;
+  miembroIdSeleccionado = null;
+  actividadIdSeleccionada = null;
+  totalActualPagado = 0;
+  $("#inputMonto").val(""); // limpiar el campo también si quieres
+
+  
     loadPage("frontPagos", "admin/");
 })
-$("#tablaDeudas").on("click", ".btn-agregar-pago", async function () {
-  const miembroId = $(this).data("miembro-id");
-  const actividadId = $(this).data("actividad-id");
 
-  let abono = prompt("Ingrese el monto del abono:");
-  abono = parseFloat(abono);
 
-  if (isNaN(abono) || abono <= 0) {
+var modal = new bootstrap.Modal(document.getElementById('modalMonto'));
+
+// Declarar una vez al principio del script
+var accionPago;
+var miembroIdSeleccionado;
+var actividadIdSeleccionada;
+var totalActualPagado;
+
+$("#tablaDeudas").on("click", ".btn-agregar-pago", function () {
+  accionPago = "agregar";
+  miembroIdSeleccionado = $(this).data("miembro-id");
+  actividadIdSeleccionada = $(this).data("actividad-id");
+  $("#modalMontoLabel").text("Ingrese el monto del abono");
+  $("#inputMonto").val("").attr("min", 0);
+  modal.show();
+});
+
+$("#tablaDeudas").on("click", ".btn-editar-pago", async function () {
+  accionPago = "editar";
+  miembroIdSeleccionado = $(this).data("miembro-id");
+  actividadIdSeleccionada = $(this).data("actividad-id");
+
+  const miembroRef = firebase.firestore()
+    .collection("actividades")
+    .doc(actividadIdSeleccionada)
+    .collection("miembrosActividad")
+    .doc(miembroIdSeleccionado);
+
+  const doc = await miembroRef.get();
+  if (!doc.exists) {
+    alert("No se encontró el registro del miembro.");
+    return;
+  }
+
+  totalActualPagado = doc.data().totalPagado || 0;
+  $("#modalMontoLabel").text("Editar total pagado");
+  $("#inputMonto").val(totalActualPagado).attr("min", 0);
+  modal.show();
+});
+
+$("#formModalMonto").submit(async function (e) {
+  e.preventDefault();
+  let monto = parseFloat($("#inputMonto").val());
+
+  if (isNaN(monto) || monto < 0) {
     alert("Monto inválido.");
     return;
   }
 
   const miembroRef = firebase.firestore()
     .collection("actividades")
-    .doc(actividadId)
+    .doc(actividadIdSeleccionada)
     .collection("miembrosActividad")
-    .doc(miembroId);
+    .doc(miembroIdSeleccionado);
 
   try {
-    await firebase.firestore().runTransaction(async (transaction) => {
-      const doc = await transaction.get(miembroRef);
+    if (accionPago === "agregar") {
+      await firebase.firestore().runTransaction(async (transaction) => {
+        const doc = await transaction.get(miembroRef);
+        if (!doc.exists) throw "El documento del miembro no existe.";
 
-      if (!doc.exists) {
-        throw "El documento del miembro no existe.";
-      }
+        const data = doc.data();
+        const totalPagadoAnterior = data.totalPagado || 0;
+        const nuevoTotalPagado = totalPagadoAnterior + monto;
 
-      const data = doc.data();
-      const totalPagadoAnterior = data.totalPagado || 0;
-      const nuevoTotalPagado = totalPagadoAnterior + abono;
+        transaction.update(miembroRef, { totalPagado: nuevoTotalPagado });
 
-      // Actualiza el campo totalPagado
-      transaction.update(miembroRef, {
-        totalPagado: nuevoTotalPagado
+        const nuevoPagoRef = miembroRef.collection("pagos").doc();
+        transaction.set(nuevoPagoRef, {
+          monto,
+          fecha: new Date(),
+          actividadId: actividadIdSeleccionada
+        });
       });
+      alert("Pago registrado correctamente.");
+    } else if (accionPago === "editar") {
+      await miembroRef.update({ totalPagado: monto });
+      alert("Total pagado actualizado.");
+    }
 
-      // Registra el abono en la subcolección "pagos"
-      const nuevoPagoRef = miembroRef.collection("pagos").doc();
-      transaction.set(nuevoPagoRef, {
-        monto: abono,
-        fecha: new Date(),
-        actividadId: actividadId
-      });
-    });
-
-    alert("Pago registrado correctamente.");
-    cargarDeudas(miembroId); // Vuelve a cargar la tabla para actualizar la deuda
+    modal.hide();
+    cargarDeudas(miembroIdSeleccionado);
 
   } catch (error) {
-    console.error("Error al registrar el pago:", error);
-    alert("No se pudo registrar el pago.");
+    console.error("Error al guardar:", error);
+    alert("No se pudo guardar el monto.");
   }
 });
+
+
+

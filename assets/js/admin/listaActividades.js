@@ -51,23 +51,47 @@ $("#formEditarActividad").submit(function (e) {
       alert("Error al actualizar la actividad.");
     });
 });
-$(document).on("click", ".btn-eliminar", function () {
-  const fila = $(this).closest("tr");
-  const id = fila.data("id");
-  const nombre = fila.find("td:eq(0)").text();
 
-  if (confirm(`¿Estás seguro de que deseas eliminar la actividad "${nombre}"? Esta acción no se puede deshacer.`)) {
-    firebase.firestore().collection("actividades").doc(id).delete()
-      .then(() => {
-        alert("Actividad eliminada correctamente.");
-        cargarActividades(); // Recargar tabla
-      })
-      .catch(err => {
-        console.error("Error al eliminar:", err);
-        alert("Error al eliminar la actividad.");
-      });
+$(document).on("click", ".btn-eliminar", async function () {
+  const fila = $(this).closest("tr");
+  const actividadId = fila.data("id");
+
+  if (!confirm("¿Estás seguro de eliminar esta actividad con todas sus asignaciones y pagos?")) return;
+
+  const actividadRef = firebase.firestore().collection("actividades").doc(actividadId);
+  const miembrosRef = actividadRef.collection("miembrosActividad");
+
+  try {
+    const miembrosSnap = await miembrosRef.get();
+
+    // Recorremos cada miembro
+    for (const miembroDoc of miembrosSnap.docs) {
+      const miembroId = miembroDoc.id;
+      const pagosRef = miembrosRef.doc(miembroId).collection("pagos");
+      const pagosSnap = await pagosRef.get();
+
+      // Borramos todos los pagos del miembro
+      for (const pagoDoc of pagosSnap.docs) {
+        await pagosRef.doc(pagoDoc.id).delete();
+      }
+
+      // Borramos el documento del miembro
+      await miembrosRef.doc(miembroId).delete();
+    }
+
+    // Finalmente borramos la actividad
+    await actividadRef.delete();
+
+    alert("Actividad eliminada correctamente.");
+    cargarActividades(); // Actualiza la tabla
+  } catch (err) {
+    console.error("Error al eliminar actividad:", err);
+    alert("Error al eliminar la actividad.");
   }
 });
+
+
+
 $("#atrasLista").click(function(){
     loadPage("frontActividades", "admin/");
 })

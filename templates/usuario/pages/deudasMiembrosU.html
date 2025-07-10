@@ -1,0 +1,35 @@
+<!-- plantillaDeResumen.html -->
+<div class="container mt-4">
+  <h3 class="mb-4">Resumen de Miembros con Deudas</h3>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped" id="tablaResumen">
+      <thead class="table-dark">
+        <tr>
+          <th>Miembro</th>
+          <th class="text-end">Deuda Total</th>
+          <th class="text-end">Pagos Totales</th>
+          <th class="text-end">Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filas dinámicas -->
+      </tbody>
+      <tfoot class="table-secondary fw-bold">
+        <tr>
+          <td class="text-end">Totales:</td>
+          <td id="totalDeuda" class="text-end">$0.00</td>
+          <td id="totalPagos" class="text-end">$0.00</td>
+          <td id="totalSaldo" class="text-end" style="color: red;">$0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+<div class="d-flex gap-2 mb-3">
+  <button class="btn btn-danger" onclick="exportarTablaPDF()">Exportar a PDF</button>
+  <button class="btn btn-secondary" onclick="imprimirTabla()">Imprimir Tabla</button>
+  <button id="atrasd" class="btn btn-info">Atrás</button>
+</div>
+
+  </div>
+</div>
+<script src="/assets/js/usuario/deudasMiembrosU.js"></script>

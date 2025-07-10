@@ -37,9 +37,10 @@
           $("#formGastos").hide();
         }
       });
-      $("#atras").click(function(){
-            loadPage("frontActividades", "admin/");
-      })
+   $("#atras").click(function() {
+     loadPage("frontActividades", "admin/");
+      });
+
 
       // 4. Guardar gastos
       $("#formGastos").submit(async function (e) {
