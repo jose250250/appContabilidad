@@ -88,3 +88,15 @@ $(document).on("click", ".btn-eliminar", async function () {
 $("#atrasent").click(function(){
      loadPage("frontEntrada", "admin/");
 })
+
+
+  // Eventos de los botones
+  $("#entradasM").on("click", function () {
+    mostrarDiv("div1", this);
+  });
+  $("#entradasA").on("click", function () {
+    mostrarDiv("div2", this);
+  });
+  $("#entradasMA").on("click", function () {
+    mostrarDiv("div3", this);
+  });

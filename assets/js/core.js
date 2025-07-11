@@ -104,7 +104,6 @@ async function cargarMiembros() {
     ocultarLoading(); // ✅ Siempre se ejecuta al final
   }
 }
-
 async function cargarMiembrosEnSelect() {
   mostrarLoading(); // 🔄 Mostrar spinner
 
@@ -124,7 +123,6 @@ async function cargarMiembrosEnSelect() {
     ocultarLoading(); // ✅ Ocultar spinner al final
   }
 }
-
 async function cargarActividades() {
   const tabla = $("#tablaActividades tbody");
   const totalGananciasCell = $("#totalGanancias");
@@ -311,8 +309,6 @@ async function cargarDeudas(miembroId, nombreMiembro) {
     ocultarLoading(); // ✅ Ocultar spinner siempre, incluso si hay error
   }
 }
-
-
 async function cargarMiembros2() {
   const miembrosSelect = $("#miembrosSelect");
   miembrosSelect.empty();
@@ -355,8 +351,6 @@ async function cargarMiembros2() {
     ocultarLoading(); // ✅ Ocultar spinner
   }
 }
-
-
 function entradaFondo() {
   const formEntrada = document.getElementById("formEntrada");
 
@@ -398,11 +392,22 @@ async function cargarSalidasFondo() {
   const totalSalidasEl = $("#totalSalidas");
   tablaBody.empty();
 
+  const tablaBody2 = $("#tablaSalidas2 tbody");
+  const totalSalidasEl2 = $("#totalSalidas2");
+  tablaBody2.empty();
+
+  const tablaBody3 = $("#tablaSalidas3 tbody");
+  const totalSalidasEl3 = $("#totalSalidas3");
+  tablaBody3.empty();
+
   let total = 0;
+  let total2 = 0;
+  let total3 = 0;
 
   mostrarLoading(); // 🔄 Mostrar spinner
 
   try {
+    // 🟩 Cargar salidas manuales
     const salidasSnap = await firebase
       .firestore()
       .collection("fondoSalidas")
@@ -421,6 +426,7 @@ async function cargarSalidasFondo() {
       const motivo = s.motivo || "Sin motivo";
       const cantidad = s.cantidad || 0;
 
+      // Tabla 1
       tablaBody.append(`
         <tr data-id="${id}">
           <td>${fecha}</td>
@@ -441,15 +447,83 @@ async function cargarSalidasFondo() {
         </tr>
       `);
 
+      // Tabla 3
+      const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${motivo} (${fecha})</td>
+          <td>Entrada Manual</td>
+          <td>$${cantidad.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody3.append(fila3);
+
       total += cantidad;
     });
 
     totalSalidasEl.text(`$${total.toLocaleString()}`);
+
+    // 🟩 Cargar gastos de actividades
+    const snapshotActividades = await firebase
+      .firestore()
+      .collection("actividades")
+      .orderBy("fecha", "desc")
+      .get();
+
+    for (const doc of snapshotActividades.docs) {
+      const s = doc.data();
+      const actividadId = doc.id;
+      const nombre2 = s.nombre || "Sin nombre";
+      const fecha2 = s.fecha || "Sin fecha";
+      const motivo2 = "Gasto de actividad";
+      let totalGastos = 0;
+
+      const gastosSnapshot = await firebase
+        .firestore()
+        .collection("actividades")
+        .doc(actividadId)
+        .collection("gastos")
+        .get();
+
+      gastosSnapshot.forEach((gastoDoc) => {
+        const gasto = gastoDoc.data();
+        const monto = gasto.monto || 0;
+        totalGastos += monto;
+      });
+
+      // Tabla 2
+      const fila2 = `
+        <tr data-id="${actividadId}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalGastos.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody2.append(fila2);
+
+      // Tabla 3
+      const fila3 = `
+        <tr data-id="${actividadId}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalGastos.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody3.append(fila3);
+
+      total2 += totalGastos;
+    }
+
+    totalSalidasEl2.text(`$${total2.toFixed(2)}`);
+
+    total3 = total + total2;
+    totalSalidasEl3.text(`$${total3.toFixed(2)}`);
+
   } catch (error) {
     console.error("Error al cargar salidas:", error);
     alert("Error al cargar salidas del fondo.");
   } finally {
     ocultarLoading(); // ✅ Ocultar spinner
+    $("#salidasMA").click(); // Simular clic en pestaña o vista
   }
 }
 
@@ -458,7 +532,18 @@ async function cargarEntradasFondo() {
   const totalEl = $("#totalEntradas");
   tbody.empty();
 
+  const tbody2 = $("#tablaEntradas2 tbody");
+  const totalEl2 = $("#totalEntradas2");
+  tbody2.empty();
+
+  const tbody3 = $("#tablaEntradas3 tbody");
+  const totalEl3 = $("#totalEntradas3");
+  tbody3.empty();
+
+
   let total = 0;
+  let total2 = 0;
+  let total3 = 0;
 
   mostrarLoading(); // 🔄 Mostrar spinner
 
@@ -477,6 +562,7 @@ async function cargarEntradasFondo() {
       const cantidad = data.cantidad || 0;
 
       total += cantidad;
+      total3 += cantidad;
 
       const fila = `
         <tr data-id="${doc.id}">
@@ -490,15 +576,69 @@ async function cargarEntradasFondo() {
           </td>
         </tr>
       `;
+
+         const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${tipo} (${fecha})</td>
+          <td>${motivo}</td>
+          <td>$${cantidad.toFixed(2)}</td>
+        </tr>
+      `;
       tbody.append(fila);
+      tbody3.append(fila3);
+
     });
 
     totalEl.text(`$${total.toFixed(2)}`);
+  
+    
+
+   const snapshot2 = await firebase
+      .firestore()
+      .collection("actividades")
+      .orderBy("fecha", "desc")
+      .get();
+
+    snapshot2.forEach((doc) => {
+      const data2 = doc.data();
+      const fecha2 = data2.fecha || "Sin fecha";
+      const motivo2 = data2.descripcion || "Sin descripción";
+      const nombre2 = data2.nombre || "Sin tipo";
+      const totalact = data2.total||0
+
+      total2 += totalact;
+
+      const fila2 = `
+        <tr data-id="${doc.id}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalact.toFixed(2)}</td>
+        </tr>
+      `;
+      tbody2.append(fila2);
+
+        const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalact.toFixed(2)}</td>
+        </tr>
+      `;
+      tbody3.append(fila3);
+    });
+
+    totalEl2.text(`$${total2.toFixed(2)}`);
+
+    total3 = total + total2;
+
+    totalEl3.text(`$${total3.toFixed(2)}`);
+
   } catch (error) {
-    console.error("Error al cargar entradas:", error);
+    console.error("Error al cargar entradas :", error);
     alert("No se pudo cargar la lista de entradas.");
   } finally {
     ocultarLoading(); // ✅ Ocultar spinner al finalizar
+     $("#entradasMA").click();
   }
 }
 
@@ -692,13 +832,25 @@ async function cargarActividadesU() {
 }
 
 async function cargarEntradasFondoU() {
+  
   const tbody = $("#tablaEntradas tbody");
   const totalEl = $("#totalEntradas");
   tbody.empty();
 
-  let total = 0;
+  const tbody2 = $("#tablaEntradas2 tbody");
+  const totalEl2 = $("#totalEntradas2");
+  tbody2.empty();
 
-  mostrarLoading(); // ⏳ Mostrar spinner de carga
+  const tbody3 = $("#tablaEntradas3 tbody");
+  const totalEl3 = $("#totalEntradas3");
+  tbody3.empty();
+
+
+  let total = 0;
+  let total2 = 0;
+  let total3 = 0;
+
+  mostrarLoading(); // 🔄 Mostrar spinner
 
   try {
     const snapshot = await firebase
@@ -709,13 +861,13 @@ async function cargarEntradasFondoU() {
 
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const fecha =
-        data.fecha?.toDate().toISOString().split("T")[0] || "Sin fecha";
+      const fecha = data.fecha?.toDate().toISOString().split("T")[0] || "Sin fecha";
       const motivo = data.descripcion || "Sin descripción";
       const tipo = data.tipo || "Sin tipo";
       const cantidad = data.cantidad || 0;
 
       total += cantidad;
+      total3 += cantidad;
 
       const fila = `
         <tr data-id="${doc.id}">
@@ -723,17 +875,72 @@ async function cargarEntradasFondoU() {
           <td>${motivo}</td>
           <td>${tipo}</td>
           <td>$${cantidad.toFixed(2)}</td>
+          
+        </tr>
+      `;
+
+         const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${tipo} (${fecha})</td>
+          <td>${motivo}</td>
+          <td>$${cantidad.toFixed(2)}</td>
         </tr>
       `;
       tbody.append(fila);
+      tbody3.append(fila3);
+
     });
 
     totalEl.text(`$${total.toFixed(2)}`);
+  
+    
+
+   const snapshot2 = await firebase
+      .firestore()
+      .collection("actividades")
+      .orderBy("fecha", "desc")
+      .get();
+
+    snapshot2.forEach((doc) => {
+      const data2 = doc.data();
+      const fecha2 = data2.fecha || "Sin fecha";
+      const motivo2 = data2.descripcion || "Sin descripción";
+      const nombre2 = data2.nombre || "Sin tipo";
+      const totalact = data2.total||0
+
+      total2 += totalact;
+
+      const fila2 = `
+        <tr data-id="${doc.id}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalact.toFixed(2)}</td>
+        </tr>
+      `;
+      tbody2.append(fila2);
+
+        const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalact.toFixed(2)}</td>
+        </tr>
+      `;
+      tbody3.append(fila3);
+    });
+
+    totalEl2.text(`$${total2.toFixed(2)}`);
+
+    total3 = total + total2;
+
+    totalEl3.text(`$${total3.toFixed(2)}`);
+
   } catch (error) {
-    console.error("Error al cargar entradas:", error);
+    console.error("Error al cargar entradas :", error);
     alert("No se pudo cargar la lista de entradas.");
   } finally {
-    ocultarLoading(); // ✅ Ocultar spinner sin importar el resultado
+    ocultarLoading(); // ✅ Ocultar spinner al finalizar
+     $("#entradasMA").click();
   }
 }
 
@@ -742,11 +949,22 @@ async function cargarSalidasFondoU() {
   const totalSalidasEl = $("#totalSalidas");
   tablaBody.empty();
 
-  let total = 0;
+  const tablaBody2 = $("#tablaSalidas2 tbody");
+  const totalSalidasEl2 = $("#totalSalidas2");
+  tablaBody2.empty();
 
-  mostrarLoading(); // ⏳ Mostrar spinner
+  const tablaBody3 = $("#tablaSalidas3 tbody");
+  const totalSalidasEl3 = $("#totalSalidas3");
+  tablaBody3.empty();
+
+  let total = 0;
+  let total2 = 0;
+  let total3 = 0;
+
+  mostrarLoading(); // 🔄 Mostrar spinner
 
   try {
+    // 🟩 Cargar salidas manuales
     const salidasSnap = await firebase
       .firestore()
       .collection("fondoSalidas")
@@ -765,6 +983,7 @@ async function cargarSalidasFondoU() {
       const motivo = s.motivo || "Sin motivo";
       const cantidad = s.cantidad || 0;
 
+      // Tabla 1
       tablaBody.append(`
         <tr data-id="${id}">
           <td>${fecha}</td>
@@ -773,16 +992,85 @@ async function cargarSalidasFondoU() {
         </tr>
       `);
 
+      // Tabla 3
+      const fila3 = `
+        <tr data-id="${doc.id}">
+          <td>${motivo} (${fecha})</td>
+          <td>Entrada Manual</td>
+          <td>$${cantidad.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody3.append(fila3);
+
       total += cantidad;
     });
 
     totalSalidasEl.text(`$${total.toLocaleString()}`);
+
+    // 🟩 Cargar gastos de actividades
+    const snapshotActividades = await firebase
+      .firestore()
+      .collection("actividades")
+      .orderBy("fecha", "desc")
+      .get();
+
+    for (const doc of snapshotActividades.docs) {
+      const s = doc.data();
+      const actividadId = doc.id;
+      const nombre2 = s.nombre || "Sin nombre";
+      const fecha2 = s.fecha || "Sin fecha";
+      const motivo2 = "Gasto de actividad";
+      let totalGastos = 0;
+
+      const gastosSnapshot = await firebase
+        .firestore()
+        .collection("actividades")
+        .doc(actividadId)
+        .collection("gastos")
+        .get();
+
+      gastosSnapshot.forEach((gastoDoc) => {
+        const gasto = gastoDoc.data();
+        const monto = gasto.monto || 0;
+        totalGastos += monto;
+      });
+
+      // Tabla 2
+      const fila2 = `
+        <tr data-id="${actividadId}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalGastos.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody2.append(fila2);
+
+      // Tabla 3
+      const fila3 = `
+        <tr data-id="${actividadId}">
+          <td>${nombre2} (${fecha2})</td>
+          <td>${motivo2}</td>
+          <td>$${totalGastos.toFixed(2)}</td>
+        </tr>
+      `;
+      tablaBody3.append(fila3);
+
+      total2 += totalGastos;
+    }
+
+    totalSalidasEl2.text(`$${total2.toFixed(2)}`);
+
+    total3 = total + total2;
+    totalSalidasEl3.text(`$${total3.toFixed(2)}`);
+
   } catch (error) {
     console.error("Error al cargar salidas:", error);
     alert("Error al cargar salidas del fondo.");
   } finally {
-    ocultarLoading(); // ✅ Ocultar spinner, sin importar éxito o error
+    ocultarLoading(); // ✅ Ocultar spinner
+    $("#salidasMA").click(); // Simular clic en pestaña o vista
   }
+    
 }
 
 async function cargarResumenDeudas() {
@@ -860,7 +1148,6 @@ async function cargarResumenDeudas() {
   }
 }
 
-
 function mostrarLoading() {
   $("body").css("overflow", "hidden");
   $("#loadingOverlay")
@@ -869,13 +1156,22 @@ function mostrarLoading() {
     .fadeIn(200);            // Animación de entrada
 }
 
-
 function ocultarLoading() {
   $("body").css("overflow", "auto");
   $("#loadingOverlay").fadeOut(200, function () {
     $(this).css("display", "none");
   });
 }
+function mostrarDiv(idDiv, boton) {
+    // Ocultar todos los divs de contenido
+    $(".contenido").addClass("d-none");
 
+    // Mostrar el div seleccionado
+    $(`#${idDiv}`).removeClass("d-none");
+
+    // Botón activo (opcional)
+    $("#entradasM, #entradasA, #entradasMA").removeClass("active");
+    $(boton).addClass("active");
+}
 
 
