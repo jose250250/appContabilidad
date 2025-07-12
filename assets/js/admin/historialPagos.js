@@ -3,6 +3,8 @@ $(function(){
     const tabla = $("#tablaHistorialPagos");
     const tbody = tabla.find("tbody");
 
+    mostrarLoading();
+    try {
     // 1. Cargar miembros
     db.collection("miembros").orderBy("nombre").get().then(snapshot => {
       snapshot.forEach(doc => {
@@ -10,6 +12,12 @@ $(function(){
         selectMiembro.append(`<option value="${doc.id}">${data.nombre} ${data.apellido}</option>`);
       });
     });
+  } catch(err){
+    alert("error al cargar miembros");
+  }
+  finally{
+      ocultarLoading();
+  }
 
     // 2. Al seleccionar un miembro, mostrar historial de pagos
     selectMiembro.change(async function () {
@@ -20,7 +28,7 @@ $(function(){
       if (!miembroId) return;
 
       var pagosTotales = [];
-
+      mostrarLoading();
       try {
         const actividadesSnapshot = await db.collection("actividades").get();
 
@@ -69,7 +77,11 @@ $(function(){
       } catch (err) {
         console.error("Error al cargar historial:", err);
         alert("No se pudo obtener el historial de pagos.");
-      }
+      
+       } finally {
+    // Ocultar loading y reactivar scroll
+    ocultarLoading();
+  }
     });
     })
     $("#atrasPagos").click(function(){

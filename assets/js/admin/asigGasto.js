@@ -91,11 +91,6 @@
         }
       });
 
-      // 5. Botón Atrás
-      $("#btnAtras").click(function () {
-        $("#formGastos").hide();
-        $("#selectActividad").val("");
-      });
     });
 
 

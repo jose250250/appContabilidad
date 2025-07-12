@@ -1,5 +1,6 @@
 // assets/js/admin/deudasPorActividades.js
 $(document).ready(() => {
+  mostrarLoading();
   const db = firebase.firestore();
 
   // Cargar actividades en el select
@@ -18,12 +19,13 @@ db.collection("actividades")
       selectActividad.append(`
         <option value="${doc.id}">${nombre} (${fechaTexto})</option>
       `);
+      ocultarLoading();
     });
   })
+
   .catch((error) => {
     console.error("Error cargando actividades:", error);
   });
-
 
   // Al cambiar la actividad
   $("#selectActividad").on("change", function () {
