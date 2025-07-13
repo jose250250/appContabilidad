@@ -48,90 +48,100 @@ db.collection("actividades")
   });
 
   // Función principal
-  function cargarResumenActividad(actividadId) {
-    mostrarLoading();
+function cargarResumenActividad(actividadId) {
+  mostrarLoading();
 
-    const miembrosRef = db.collection("miembros");
-    const actividadRef = db.collection("actividades").doc(actividadId);
-    const asignacionesRef = actividadRef.collection("miembrosActividad");
+  const miembrosRef = db.collection("miembros");
+  const actividadRef = db.collection("actividades").doc(actividadId);
+  const asignacionesRef = actividadRef.collection("miembrosActividad");
 
-    $("#tablaDeudores tbody").empty();
-    $("#tablaTodos tbody").empty();
+  $("#tablaDeudores tbody").empty();
+  $("#tablaTodos tbody").empty();
 
-    let totalTodos = 0;
-    let totalDeudores = 0;
+  let totalTodos = 0;
+  let totalDeudores = 0;
 
-    actividadRef.get().then((doc) => {
-      const actividad = doc.data();
-      const precioUnidad = actividad.precioUnidad || 0;
+  actividadRef.get().then((doc) => {
+    const actividad = doc.data();
+    const precioUnidad = actividad.precioUnidad || 0;
 
-      asignacionesRef.get().then(async (snapshot) => {
-        const promesas = snapshot.docs.map(async (asigDoc) => {
-          const asig = asigDoc.data();
-          const miembroId = asigDoc.id;
+    asignacionesRef.get().then(async (snapshot) => {
+      const filas = [];           // Para tablaTodos
+      const filasDeudores = [];   // Para tablaDeudores
 
-          const miembroSnap = await miembrosRef.doc(miembroId).get();
-          const miembro = miembroSnap.data() || {};
-          const nombreCompleto = `${miembro.nombre} ${miembro.apellido}`.trim();
+      const promesas = snapshot.docs.map(async (asigDoc) => {
+        const asig = asigDoc.data();
+        const miembroId = asigDoc.id;
 
-          const cantidad = asig.cantidad || 0;
-          const total = cantidad * precioUnidad;
-          const pagado = asig.totalPagado || 0;
-          const saldo = total - pagado;
+        const miembroSnap = await miembrosRef.doc(miembroId).get();
+        const miembro = miembroSnap.data() || {};
+        const nombreCompleto = `${miembro.nombre} ${miembro.apellido}`.trim();
 
-          const fila = `
-            <tr>
-              <td>${nombreCompleto}</td>
-              <td class="text-end">${cantidad}</td>
-              <td class="text-end">$${total.toLocaleString()}</td>
-              <td class="text-end">$${pagado.toLocaleString()}</td>
-              <td class="text-end fw-bold ${saldo > 0 ? "text-danger" : "text-success"}">
-                $${saldo.toLocaleString()}
-              </td>
-            </tr>
-          `;
+        const cantidad = asig.cantidad || 0;
+        const total = cantidad * precioUnidad;
+        const pagado = asig.totalPagado || 0;
+        const saldo = total - pagado;
 
-         if (cantidad > 0){
-          $("#tablaTodos tbody").append(fila);
+        const filaHTML = `
+          <tr>
+            <td>${nombreCompleto}</td>
+            <td class="text-end">${cantidad}</td>
+            <td class="text-end">$${total.toLocaleString()}</td>
+            <td class="text-end">$${pagado.toLocaleString()}</td>
+            <td class="text-end fw-bold ${saldo > 0 ? "text-danger" : "text-success"}">
+              $${saldo.toLocaleString()}
+            </td>
+          </tr>
+        `;
+
+        if (cantidad > 0) {
+          filas.push({ nombreCompleto, filaHTML });
           totalTodos += saldo;
-           }
-
-          if (saldo > 0) {
-            $("#tablaDeudores tbody").append(fila);
-            totalDeudores += saldo;
-          }
-        });
-
-        await Promise.all(promesas);
-
-        // Fila de total para tabla de deudores
-        if (totalDeudores > 0) {
-          $("#tablaDeudores tbody").append(`
-            <tr class="table-warning fw-bold">
-              <td colspan="4" class="text-end">Total Deuda:</td>
-              <td class="text-end text-danger">$${totalDeudores.toLocaleString()}</td>
-            </tr>
-          `);
         }
 
-        // Fila de total para tabla de todos
-        $("#tablaTodos tbody").append(`
-          <tr class="table-success fw-bold">
-            <td colspan="4" class="text-end">Total Saldo (Todos):</td>
-            <td class="text-end">$${totalTodos.toLocaleString()}</td>
+        if (saldo > 0) {
+          filasDeudores.push({ nombreCompleto, filaHTML });
+          totalDeudores += saldo;
+        }
+      });
+
+      await Promise.all(promesas);
+
+      // Ordenar alfabéticamente por nombre
+      filas.sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
+      filasDeudores.sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
+
+      // Agregar a tablaTodos
+      filas.forEach(item => $("#tablaTodos tbody").append(item.filaHTML));
+      $("#tablaTodos tbody").append(`
+        <tr class="table-success fw-bold">
+          <td colspan="4" class="text-end">Total Saldo (Todos):</td>
+          <td class="text-end">$${totalTodos.toLocaleString()}</td>
+        </tr>
+      `);
+
+      // Agregar a tablaDeudores
+      filasDeudores.forEach(item => $("#tablaDeudores tbody").append(item.filaHTML));
+      if (totalDeudores > 0) {
+        $("#tablaDeudores tbody").append(`
+          <tr class="table-warning fw-bold">
+            <td colspan="4" class="text-end">Total Deuda:</td>
+            <td class="text-end text-danger">$${totalDeudores.toLocaleString()}</td>
           </tr>
         `);
+      }
 
-        ocultarLoading();
-      }).catch((err) => {
-        console.error("Error cargando asignaciones:", err);
-        ocultarLoading();
-      });
+      ocultarLoading();
     }).catch((err) => {
-      console.error("Error cargando actividad:", err);
+      console.error("Error cargando asignaciones:", err);
       ocultarLoading();
     });
-  }
+  }).catch((err) => {
+    console.error("Error cargando actividad:", err);
+    ocultarLoading();
+  });
+}
+
 
   function limpiarTablas() {
     $("#tablaDeudores tbody").empty();

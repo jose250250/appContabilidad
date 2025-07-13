@@ -1,28 +1,32 @@
 $(document).ready(function () {
   cargarActividades(); // Cargar al iniciar
 });
-let modalEditar = new bootstrap.Modal(document.getElementById("modalEditarActividad"));
+var modalEditar = new bootstrap.Modal(document.getElementById("modalEditarActividad"));
 
 $(document).on("click", ".btn-editar", function () {
   const fila = $(this).closest("tr");
   const id = fila.data("id");
 
-  // Obtener datos de la fila
-  const nombre = fila.find("td:eq(0)").text();
-  const descripcion = fila.find("td:eq(1)").text();
-  const fecha = fila.find("td:eq(2)").text();
-  const cantUnidades = fila.find("td:eq(3)").text();
-  const precioUnidad = fila.find("td:eq(4)").text().replace("$", "");
+  const actividadesRef = firebase.firestore().collection("actividades");  
+  actividadesRef.doc(id).get().then((doc) => {
+    if (doc.exists) {
+      const A = doc.data();
 
-  // Rellenar el modal
-  $("#edit-id").val(id);
-  $("#edit-nombre").val(nombre);
-  $("#edit-descripcion").val(descripcion);
-  $("#edit-fecha").val(fecha);
-  $("#edit-cantUnidades").val(cantUnidades);
-  $("#edit-precioUnidad").val(precioUnidad);
+      // Rellenar el modal
+      $("#edit-id").val(id); // ID tomado desde el `data-id` de la fila
+      $("#edit-nombre").val(A.nombre);
+      $("#edit-descripcion").val(A.descripcion);
+      $("#edit-fecha").val(A.fecha);
+      $("#edit-cantUnidades").val(A.cantUnidades);
+      $("#edit-precioUnidad").val(A.precioUnidad);
 
-  modalEditar.show();
+      modalEditar.show();
+    } else {
+      console.error("No se encontró el documento.");
+    }
+  }).catch((error) => {
+    console.error("Error al obtener el documento:", error);
+  });
 });
 
 // Guardar cambios

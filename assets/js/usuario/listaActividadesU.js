@@ -1,3 +1,4 @@
+
 $(document).ready(function () {
   cargarActividadesU(); // Cargar al iniciar
 });

@@ -132,8 +132,8 @@ async function cargarActividades() {
   mostrarLoading(); // 🔄 Mostrar spinner
 
   try {
-    const actividadesRef = firebase.firestore().collection("actividades");
-    const snapshot = await actividadesRef.orderBy("creada", "desc").get();
+   const actividadesRef = firebase.firestore().collection("actividades");
+    const snapshot = await actividadesRef.orderBy("fecha", "desc").get();
     let sumaGanancias = 0;
 
     if (snapshot.empty) {
@@ -149,8 +149,8 @@ async function cargarActividades() {
       const gastosSnap = await actividadesRef.doc(actividadId).collection("gastos").get();
       let totalGastos = 0;
       gastosSnap.forEach((g) => {
-        const gasto = g.data();
-        totalGastos += gasto.monto || 0;
+      const gasto = g.data();
+      totalGastos += gasto.monto || 0;
       });
 
       // Calcular ganancia
@@ -262,6 +262,8 @@ async function cargarDeudas(miembroId, nombreMiembro) {
     });
 
     await Promise.all(promesas); // ⏳ Esperar todas las asignaciones
+
+    deudas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
     if (deudas.length > 0) {
       tabla.removeClass("d-none");
