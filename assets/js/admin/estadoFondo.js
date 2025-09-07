@@ -24,7 +24,7 @@ function descargarEstadoPDF() {
 
   const opt = {
     margin:       0.3,
-    filename:     'estado_fondo.pdf',
+    filename:     'estado_fondo .pdf',
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 3, scrollY: 0 },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },

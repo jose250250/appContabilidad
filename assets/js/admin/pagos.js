@@ -32,14 +32,22 @@ var accionPago;
 var miembroIdSeleccionado;
 var actividadIdSeleccionada;
 var totalActualPagado;
+var miembroDebe;
 
 $("#tablaDeudas").on("click", ".btn-agregar-pago", function () {
+
   accionPago = "agregar";
   miembroIdSeleccionado = $(this).data("miembro-id");
   actividadIdSeleccionada = $(this).data("actividad-id");
+  miembroDebe = $(this).data("debe"); 
+  if(miembroDebe === 0){
   $("#modalMontoLabel").text("Ingrese el monto del abono");
   $("#inputMonto").val("").attr("min", 0);
   modal.show();
+  }
+  else{
+    alert("El miembro no tiene pagos pendiente en esta actividad");
+  }
 });
 
 $("#tablaDeudas").on("click", ".btn-editar-pago", async function () {
@@ -73,7 +81,7 @@ $("#formModalMonto").submit(async function (e) {
     alert("Monto inválido.");
     return;
   }
-
+  mostrarLoading();
   const miembroRef = firebase.firestore()
     .collection("actividades")
     .doc(actividadIdSeleccionada)
@@ -111,6 +119,9 @@ $("#formModalMonto").submit(async function (e) {
   } catch (error) {
     console.error("Error al guardar:", error);
     alert("No se pudo guardar el monto.");
+  }
+  finally{
+    ocultarLoading();
   }
 });
 

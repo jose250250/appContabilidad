@@ -108,6 +108,7 @@ formAsignaciones.submit(async function (e) {
   let actividadRef = db.collection("actividades").doc(actividadId);
 
   try {
+    mostrarLoading();
     const confirmaciones = [];
 
     const cambios = [];
@@ -160,6 +161,9 @@ formAsignaciones.submit(async function (e) {
   } catch (err) {
     console.error("Error al guardar asignaciones:", err);
     alert("Ocurrió un error.");
+  }
+  finally{
+    ocultarLoading();
   }
 });
 

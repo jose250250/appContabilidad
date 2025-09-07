@@ -19,6 +19,9 @@ $(document).on("click", ".btn-editar", function () {
       $("#edit-fecha").val(A.fecha);
       $("#edit-cantUnidades").val(A.cantUnidades);
       $("#edit-precioUnidad").val(A.precioUnidad);
+      $("#gasto").val(A.gasto);
+
+   
 
       modalEditar.show();
     } else {
@@ -40,9 +43,13 @@ $("#formEditarActividad").submit(function (e) {
     fecha: $("#edit-fecha").val(),
     cantUnidades: parseInt($("#edit-cantUnidades").val()),
     precioUnidad: parseFloat($("#edit-precioUnidad").val()),
+    gasto: parseFloat($("#gasto").val()),
+  
   };
-
-  dataActualizada.total = dataActualizada.cantUnidades * dataActualizada.precioUnidad;
+  let totalCant = dataActualizada.cantUnidades * dataActualizada.precioUnidad;
+  
+  dataActualizada.total = totalCant;
+  dataActualizada.ganancia = totalCant - dataActualizada.gasto;
 
   firebase.firestore().collection("actividades").doc(id).update(dataActualizada)
     .then(() => {

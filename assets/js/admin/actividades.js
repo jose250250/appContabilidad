@@ -7,6 +7,7 @@ $(document).ready(function () {
     const fecha = $("#fecha").val();
     const cantUnidades = parseInt($("#cantUnidades").val());
     const precioUnidad = parseFloat($("#precioUnidad").val());
+    const gasto= 0;
 
     if (!nombre || !descripcion || !fecha || isNaN(cantUnidades) || isNaN(precioUnidad)) {
       alert("Por favor completa todos los campos correctamente.");
@@ -19,7 +20,9 @@ $(document).ready(function () {
       fecha: fecha,
       cantUnidades: cantUnidades,
       precioUnidad: precioUnidad,
+      gasto: gasto,
       total: cantUnidades * precioUnidad,
+      ganancia: (cantUnidades*precioUnidad) - gasto,
       creada: firebase.firestore.FieldValue.serverTimestamp()
     };
 

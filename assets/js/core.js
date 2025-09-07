@@ -270,6 +270,13 @@ async function cargarDeudas(miembroId, nombreMiembro) {
       tablaBody.empty();
 
       deudas.forEach((d) => {
+        let debe;
+
+        if(d.deudaActual === 0){
+          debe = 1;
+        }else{
+          debe=0;
+        }
         const fila = `
           <tr>
             <td>${d.actividad} (${d.fecha})</td>
@@ -279,6 +286,7 @@ async function cargarDeudas(miembroId, nombreMiembro) {
             <td class="text-center">
               <button class="btn btn-sm btn-success btn-agregar-pago me-2" 
                 data-miembro-id="${miembroId}" 
+                data-debe="${debe}" 
                 data-actividad-id="${d.actividadId}">
                 Agregar pago
               </button>
@@ -453,7 +461,7 @@ async function cargarSalidasFondo() {
       const fila3 = `
         <tr data-id="${doc.id}">
           <td>${motivo} (${fecha})</td>
-          <td>Entrada Manual</td>
+          <td>Salida Manual</td>
           <td>$${cantidad.toFixed(2)}</td>
         </tr>
       `;
@@ -525,7 +533,7 @@ async function cargarSalidasFondo() {
     alert("Error al cargar salidas del fondo.");
   } finally {
     ocultarLoading(); // ✅ Ocultar spinner
-    $("#salidasMA").click(); // Simular clic en pestaña o vista
+    $("#salidasM").click(); // Simular clic en pestaña o vista
   }
 }
 
@@ -573,8 +581,8 @@ async function cargarEntradasFondo() {
           <td>${tipo}</td>
           <td>$${cantidad.toFixed(2)}</td>
           <td>
-            <button class="btn btn-sm btn-warning btn-editar" data-id="${doc.id}">Editar</button>
-            <button class="btn btn-sm btn-danger btn-eliminar" data-id="${doc.id}">Eliminar</button>
+            <button class="btn btn-sm btn-warning btn-editarE" data-id="${doc.id}">Editar</button>
+            <button class="btn btn-sm btn-danger btn-eliminarE" data-id="${doc.id}">Eliminar</button>
           </td>
         </tr>
       `;
@@ -606,7 +614,7 @@ async function cargarEntradasFondo() {
       const fecha2 = data2.fecha || "Sin fecha";
       const motivo2 = data2.descripcion || "Sin descripción";
       const nombre2 = data2.nombre || "Sin tipo";
-      const totalact = data2.total||0
+      const totalact = data2.ganancia||0
 
       total2 += totalact;
 
@@ -866,7 +874,7 @@ async function cargarEntradasFondoU() {
       const fecha = data.fecha?.toDate().toISOString().split("T")[0] || "Sin fecha";
       const motivo = data.descripcion || "Sin descripción";
       const tipo = data.tipo || "Sin tipo";
-      const cantidad = data.cantidad || 0;
+      const cantidad = data.cantidad|| 0;
 
       total += cantidad;
       total3 += cantidad;
@@ -908,7 +916,7 @@ async function cargarEntradasFondoU() {
       const fecha2 = data2.fecha || "Sin fecha";
       const motivo2 = data2.descripcion || "Sin descripción";
       const nombre2 = data2.nombre || "Sin tipo";
-      const totalact = data2.total||0
+      const totalact = data2.ganancia||0
 
       total2 += totalact;
 
@@ -998,7 +1006,7 @@ async function cargarSalidasFondoU() {
       const fila3 = `
         <tr data-id="${doc.id}">
           <td>${motivo} (${fecha})</td>
-          <td>Entrada Manual</td>
+          <td>Salida Manual</td>
           <td>$${cantidad.toFixed(2)}</td>
         </tr>
       `;
@@ -1070,7 +1078,7 @@ async function cargarSalidasFondoU() {
     alert("Error al cargar salidas del fondo.");
   } finally {
     ocultarLoading(); // ✅ Ocultar spinner
-    $("#salidasMA").click(); // Simular clic en pestaña o vista
+    $("#salidasM").click(); // Simular clic en pestaña o vista
   }
     
 }

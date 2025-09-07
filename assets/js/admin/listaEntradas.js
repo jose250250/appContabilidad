@@ -3,7 +3,7 @@ $(document).ready(() => {
 });
 
 // Mostrar modal con los datos cargados
-$(document).on("click", ".btn-editar", function () {
+$(document).on("click", ".btn-editarE", function () {
   const id = $(this).data("id");
 
   firebase.firestore().collection("fondoEntradas").doc(id).get()
@@ -68,7 +68,7 @@ $("#formEditarEntrada").submit(function (e) {
 });
 
 
-$(document).on("click", ".btn-eliminar", async function () {
+$(document).on("click", ".btn-eliminarE", async function () {
   const id = $(this).data("id");
 
   const confirmar = confirm("¿Está seguro que desea eliminar esta entrada?");
