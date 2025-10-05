@@ -2,7 +2,11 @@ $(function(){
 
 $("#btnAgregarPago").click(function(){
      loadPage("pagos", "admin/");
-});    
+});   
+
+$("#btnHistorialPagos").click(function(){
+    loadPage("historialPagos", "admin/");     
+})
  
 $("#btnDeudaMiembro").click(function(){
      loadPage("deudasMiembros", "admin/");     

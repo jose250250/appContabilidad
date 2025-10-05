@@ -85,5 +85,5 @@ $(function(){
     });
     })
     $("#atrasPagos").click(function(){
-    loadPage("pagos", "admin/");
+    loadPage("frontPagos", "admin/");
 })

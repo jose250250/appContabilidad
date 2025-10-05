@@ -63,20 +63,8 @@ $(document).on("click", ".btn-eliminar-salida", async function () {
   }
 });
 
-
-
-
   $("#atras").click(function(){
     loadPage("frontSalida", "admin/");
     });
 
-  // Eventos de los botones
-  $("#salidasM").on("click", function () {
-    mostrarDiv("div1", this);
-  });
-  $("#salidasA").on("click", function () {
-    mostrarDiv("div2", this);
-  });
-  $("#salidasMA").on("click", function () {
-    mostrarDiv("div3", this);
-  });    
+   

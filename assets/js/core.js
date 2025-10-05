@@ -402,17 +402,11 @@ async function cargarSalidasFondo() {
   const totalSalidasEl = $("#totalSalidas");
   tablaBody.empty();
 
-  const tablaBody2 = $("#tablaSalidas2 tbody");
-  const totalSalidasEl2 = $("#totalSalidas2");
-  tablaBody2.empty();
+ 
 
-  const tablaBody3 = $("#tablaSalidas3 tbody");
-  const totalSalidasEl3 = $("#totalSalidas3");
-  tablaBody3.empty();
 
   let total = 0;
-  let total2 = 0;
-  let total3 = 0;
+
 
   mostrarLoading(); // 🔄 Mostrar spinner
 
@@ -457,76 +451,10 @@ async function cargarSalidasFondo() {
         </tr>
       `);
 
-      // Tabla 3
-      const fila3 = `
-        <tr data-id="${doc.id}">
-          <td>${motivo} (${fecha})</td>
-          <td>Salida Manual</td>
-          <td>$${cantidad.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody3.append(fila3);
-
       total += cantidad;
     });
 
     totalSalidasEl.text(`$${total.toLocaleString()}`);
-
-    // 🟩 Cargar gastos de actividades
-    const snapshotActividades = await firebase
-      .firestore()
-      .collection("actividades")
-      .orderBy("fecha", "desc")
-      .get();
-
-    for (const doc of snapshotActividades.docs) {
-      const s = doc.data();
-      const actividadId = doc.id;
-      const nombre2 = s.nombre || "Sin nombre";
-      const fecha2 = s.fecha || "Sin fecha";
-      const motivo2 = "Gasto de actividad";
-      let totalGastos = 0;
-
-      const gastosSnapshot = await firebase
-        .firestore()
-        .collection("actividades")
-        .doc(actividadId)
-        .collection("gastos")
-        .get();
-
-      gastosSnapshot.forEach((gastoDoc) => {
-        const gasto = gastoDoc.data();
-        const monto = gasto.monto || 0;
-        totalGastos += monto;
-      });
-
-      // Tabla 2
-      const fila2 = `
-        <tr data-id="${actividadId}">
-          <td>${nombre2} (${fecha2})</td>
-          <td>${motivo2}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody2.append(fila2);
-
-      // Tabla 3
-      const fila3 = `
-        <tr data-id="${actividadId}">
-          <td>${nombre2} (${fecha2})</td>
-          <td>${motivo2}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody3.append(fila3);
-
-      total2 += totalGastos;
-    }
-
-    totalSalidasEl2.text(`$${total2.toFixed(2)}`);
-
-    total3 = total + total2;
-    totalSalidasEl3.text(`$${total3.toFixed(2)}`);
 
   } catch (error) {
     console.error("Error al cargar salidas:", error);
@@ -696,6 +624,7 @@ async function cargarEstadoFondo() {
   let gastosActividades = 0;
   let totalPagado = 0;
   let totalDeuda = 0;
+  let gananciaTotal = 0;
 
   const db = firebase.firestore();
 
@@ -721,6 +650,8 @@ async function cargarEstadoFondo() {
       const actividad = actividadDoc.data();
       const actividadId = actividadDoc.id;
       const precioUnidad = actividad.precioUnidad || 0;
+
+      gananciaTotal += parseFloat(actividad.ganancia || 0);
 
       // 3.1 Miembros asignados
       const miembrosSnap = await db
@@ -752,18 +683,16 @@ async function cargarEstadoFondo() {
       });
     }
 
-    const totalEntradas = entradasManuales + entradasActividades;
-    const totalSalidas = salidasManuales + gastosActividades;
+    const totalEntradas = entradasManuales + gananciaTotal;
+    const totalSalidas = salidasManuales;
     const saldo = totalEntradas - totalSalidas;
     const efectivo = saldo - totalDeuda;
 
     // Mostrar en pantalla
     $("#entradasManuales").text(`$${entradasManuales.toLocaleString()}`);
-    $("#entradasActividades").text(`$${entradasActividades.toLocaleString()}`);
+    $("#entradasActividades").text(`$${gananciaTotal.toLocaleString()}`);
     $("#totalEntradas").text(`$${totalEntradas.toLocaleString()}`);
 
-    $("#salidasManuales").text(`$${salidasManuales.toLocaleString()}`);
-    $("#gastosActividades").text(`$${gastosActividades.toLocaleString()}`);
     $("#totalSalidas").text(`$${totalSalidas.toLocaleString()}`);
 
     $("#saldoFondo").text(`$${saldo.toLocaleString()}`);
@@ -959,18 +888,7 @@ async function cargarSalidasFondoU() {
   const totalSalidasEl = $("#totalSalidas");
   tablaBody.empty();
 
-  const tablaBody2 = $("#tablaSalidas2 tbody");
-  const totalSalidasEl2 = $("#totalSalidas2");
-  tablaBody2.empty();
-
-  const tablaBody3 = $("#tablaSalidas3 tbody");
-  const totalSalidasEl3 = $("#totalSalidas3");
-  tablaBody3.empty();
-
   let total = 0;
-  let total2 = 0;
-  let total3 = 0;
-
   mostrarLoading(); // 🔄 Mostrar spinner
 
   try {
@@ -989,7 +907,6 @@ async function cargarSalidasFondoU() {
       if (s.fecha?.toDate) {
         fecha = s.fecha.toDate().toISOString().split("T")[0];
       }
-
       const motivo = s.motivo || "Sin motivo";
       const cantidad = s.cantidad || 0;
 
@@ -1001,87 +918,19 @@ async function cargarSalidasFondoU() {
           <td class="text-end">$${cantidad.toLocaleString()}</td>
         </tr>
       `);
-
-      // Tabla 3
-      const fila3 = `
-        <tr data-id="${doc.id}">
-          <td>${motivo} (${fecha})</td>
-          <td>Salida Manual</td>
-          <td>$${cantidad.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody3.append(fila3);
-
       total += cantidad;
     });
 
     totalSalidasEl.text(`$${total.toLocaleString()}`);
-
-    // 🟩 Cargar gastos de actividades
-    const snapshotActividades = await firebase
-      .firestore()
-      .collection("actividades")
-      .orderBy("fecha", "desc")
-      .get();
-
-    for (const doc of snapshotActividades.docs) {
-      const s = doc.data();
-      const actividadId = doc.id;
-      const nombre2 = s.nombre || "Sin nombre";
-      const fecha2 = s.fecha || "Sin fecha";
-      const motivo2 = "Gasto de actividad";
-      let totalGastos = 0;
-
-      const gastosSnapshot = await firebase
-        .firestore()
-        .collection("actividades")
-        .doc(actividadId)
-        .collection("gastos")
-        .get();
-
-      gastosSnapshot.forEach((gastoDoc) => {
-        const gasto = gastoDoc.data();
-        const monto = gasto.monto || 0;
-        totalGastos += monto;
-      });
-
-      // Tabla 2
-      const fila2 = `
-        <tr data-id="${actividadId}">
-          <td>${nombre2} (${fecha2})</td>
-          <td>${motivo2}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody2.append(fila2);
-
-      // Tabla 3
-      const fila3 = `
-        <tr data-id="${actividadId}">
-          <td>${nombre2} (${fecha2})</td>
-          <td>${motivo2}</td>
-          <td>$${totalGastos.toFixed(2)}</td>
-        </tr>
-      `;
-      tablaBody3.append(fila3);
-
-      total2 += totalGastos;
-    }
-
-    totalSalidasEl2.text(`$${total2.toFixed(2)}`);
-
-    total3 = total + total2;
-    totalSalidasEl3.text(`$${total3.toFixed(2)}`);
-
+    
   } catch (error) {
     console.error("Error al cargar salidas:", error);
     alert("Error al cargar salidas del fondo.");
   } finally {
     ocultarLoading(); // ✅ Ocultar spinner
-    $("#salidasM").click(); // Simular clic en pestaña o vista
   }
-    
-}
+} 
+
 
 async function cargarResumenDeudas() {
   // Mostrar loading y bloquear scroll
@@ -1159,7 +1008,7 @@ async function cargarResumenDeudas() {
 }
 
 function mostrarLoading() {
-  $("body").css("overflow", "hidden");
+ 
   $("#loadingOverlay")
     .css("display", "flex")  // Activar el display flex para centrar
     .hide()                  // Luego ocultarlo para aplicar el fadeIn

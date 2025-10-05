@@ -1,28 +1,13 @@
 <div class="container mt-4">
- <div class="container my-4">
-  <div class="row text-center">
-    <div class="col-12 col-md-4 mb-2">
-      <button class="btn btn-primary w-100" id="salidasM">Salidas Manuales</button>
-    </div>
-    <div class="col-12 col-md-4 mb-2">
-      <button class="btn btn-success w-100" id="salidasA">Gastos De Actividades</button>
-    </div>
-    <div class="col-12 col-md-4 mb-2">
-      <button class="btn btn-warning w-100" id="salidasMA">Total Salidas(manuales y Gastos)</button>
-    </div>
-    
-  </div>
-</div>
 
-<div class="contenido d-none p-4 bg-light border rounded" id="div1">
-  <h3 class="mb-3">Lista de Salidas del Fondo</h3>
+<div class="contenido p-4 bg-light border rounded" id="div1">
+  <h3 class="mb-3">Lista de total de Salidas del Fondo</h3>
   <table class="table table-bordered" id="tablaSalidas">
     <thead class="table-dark">
       <tr>
         <th>Fecha</th>
         <th>Motivo</th>
         <th>Cantidad</th>
-
       </tr>
     </thead>
     <tbody></tbody>
@@ -33,51 +18,9 @@
       </tr>
     </tfoot>
   </table>
-    
-</div>
-
-<div class="contenido d-none p-4 bg-light border rounded" id="div2">
-  <h3 class="mb-4">Lista de salidas de gastos de actividades</h3>
- <table class="table table-bordered" id="tablaSalidas2">
-  <thead class="table-dark">
-    <tr>
-      <th>Actividad</th>
-      <th>Descripcion</th>
-      <th>Cantidad</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr>
-      <th colspan="2" class="text-end">Total</th>
-      <th id="totalSalidas2" class="text-start">$0.00</th>
-    </tr>
-  </tfoot>
-</table>
-</div>
-
-<div class="contenido d-none p-4 bg-light border rounded" id="div3">
-  <h3 class="mb-4">Lista de todas las salidas(manuales y de  gastos de actividades)</h3>
- <table class="table table-bordered" id="tablaSalidas3">
-  <thead class="table-dark">
-    <tr>
-      <th>Actividad</th>
-      <th>Descripcion</th>
-      <th>Cantidad</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-  <tfoot>
-    <tr>
-      <th colspan="2" class="text-end">Total</th>
-      <th id="totalSalidas3" class="text-start">$0.00</th>
-    </tr>
-  </tfoot>
-</table>
 </div>
 <div class="container my-4 text-end">
   <button id ="atras" class="btn btn-info">Atras</button>
 </div>
 </div>
-
 <script src="/assets/js/usuario/listaSalidasU.js"></script>
