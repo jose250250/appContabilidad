@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "contiglesia"
-  }
+    "default": "appcontabilidad2026"
+  },
+  "targets": {},
+  "etags": {}
 }

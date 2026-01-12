@@ -1,0 +1,53 @@
+<body class="bg-light">
+  <div class="container mt-5">
+    <div class="card shadow-lg rounded-4">
+      <div class="card-header bg-primary text-white text-center">
+        <h4 class="mb-0">Ingresar nuevo utensilio</h4>
+      </div>
+      <div class="card-body">
+        <form id="utensilioForm">
+          <div class="row g-3">
+            
+            <div class="col-md-3">
+              <label for="cantidad" class="form-label">Cantidad</label>
+              <input type="number" class="form-control" id="cantidad" placeholder="Ej: 5" required>
+            </div>
+            
+            <div class="col-md-5">
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text" class="form-control" id="nombre" placeholder="Ej: Cuchillo de cocina" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="descripcion" class="form-label">Descripcion</label>
+              <input type="text" class="form-control" id="descripcion" placeholder="Ej: detalles y usos" required>
+            </div>
+            
+            <div class="col-md-4">
+              <label for="valor" class="form-label">Valor estimado</label>
+              <input type="number" class="form-control" id="valor" placeholder="Ej: 15000" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="estado" class="form-label">Estado</label>
+              <select class="form-select" id="estado" required>
+                <option value="">Seleccione...</option>
+                <option value="bueno">Bueno</option>
+                <option value="regular">Regular</option>
+                <option value="dañado">Dañado</option>
+              </select>
+            </div>
+            
+            <div class="col-12 text-center mt-4">
+              <button type="submit" class="btn btn-success px-4">Guardar</button>
+              <button type="reset" class="btn btn-secondary px-4 ms-2">Limpiar</button>
+              <button type="button" id="btnAtrasInv" class="btn btn-warning px-4 ms-2">Atras</button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/admin/ingresarUtensilio.js"></script>

@@ -11,6 +11,11 @@ $("#btnEntradas").click(function(){
 $("#btnSalidas").click(function(){
      loadPage("frontSalida", "admin/");     
 })
+
+$("#btnInventario").click(function(){
+     loadPage("inventario", "admin/");     
+})
+
 $("#btnAtras").click(function(){
      loadPage("homeAdmin");
 })

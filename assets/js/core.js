@@ -1,5 +1,7 @@
 let mail = "";
 let rol = "";
+let Nusuario = "";
+let Napellido = "";
 
 function loadZone(pathOrigin, idElement) {
   const numeroAleatorio = Math.random();
@@ -36,14 +38,11 @@ function loadPage(page, root, variables) {
 }
 firebase.auth().onAuthStateChanged(function (user) {
   if (user) {
-    // El usuario ha iniciado sesión
     console.log("Usuario autenticado:", user.email);
+
+    const uid = user.uid;
     mail = user.email;
 
-    // Puedes acceder al UID si lo necesitas
-    const uid = user.uid;
-
-    // Por ejemplo, cargar su rol desde Firestore
     firebase
       .firestore()
       .collection("usuarios")
@@ -53,28 +52,36 @@ firebase.auth().onAuthStateChanged(function (user) {
         if (doc.exists) {
           const data = doc.data();
           rol = data.rol;
+          Nusuario = data.nombre;
+          Napellido = data.apellido;
           console.log("Rol:", rol);
 
-          // Redirigir o mostrar contenido
           if (rol === "administrador") {
             loadHeader("admin/");
-            // Mostrar panel admin
             loadPage("homeAdmin");
           } else if (rol === "usuario") {
             loadHeader("admin/");
             loadPage("homeUsuario", "usuario/");
+          } else {
+            console.warn("Rol no reconocido");
+            loadPage("login");
           }
         } else {
+          console.warn("Usuario sin documento en Firestore");
           loadPage("login");
         }
+      })
+      .catch((error) => {
+        console.error("Error al obtener usuario:", error);
+        loadPage("login");
       });
+
   } else {
-    // No hay sesión activa
     console.log("No hay usuario autenticado");
-    // window.location.href = "/login.html"; // Opcional
     loadPage("login");
   }
 });
+
 async function cargarMiembros() {
   const tabla = $("#tablaMiembros tbody");
   tabla.empty();
@@ -213,112 +220,103 @@ async function cargarDeudas(miembroId, nombreMiembro) {
   const tabla = $("#tablaDeudas");
   const tablaBody = tabla.find("tbody");
   tablaBody.empty();
-  let deudas = [];
+
   let totalGeneral = 0;
 
-  mostrarLoading(); // 🔄 Mostrar spinner bloqueante
+  mostrarLoading();
 
   try {
-    const actividadesSnapshot = await firebase.firestore().collection("actividades").get();
-    const promesas = [];
+    // 📌 Obtener actividades tomadas por el miembro
+    const actividadesSnap = await firebase
+      .firestore()
+      .collection("miembros")
+      .doc(miembroId)
+      .collection("actividades")
+      .get();
 
-    actividadesSnapshot.forEach((actividadDoc) => {
-      const actividad = actividadDoc.data();
-      const actividadId = actividadDoc.id;
+    if (actividadesSnap.empty) {
+      tabla.addClass("d-none");
+      alert(`El miembro ${nombreMiembro} no tiene actividades registradas.`);
+      return;
+    }
 
-      const asignacionRef = firebase
-        .firestore()
-        .collection("actividades")
-        .doc(actividadId)
-        .collection("miembrosActividad")
-        .doc(miembroId);
+    let deudas = [];
 
-      const promesa = asignacionRef.get().then((asignacionSnap) => {
-        if (asignacionSnap.exists) {
-          const asignacion = asignacionSnap.data();
+    actividadesSnap.forEach(doc => {
+      const d = doc.data();
 
-          if (asignacion.cantidad > 0) {
-            const valorUnidad = actividad.precioUnidad || 0;
-            const valorDeuda = asignacion.cantidad * valorUnidad;
-            const totalPagado = asignacion.totalPagado || 0;
-            const deudaActual = valorDeuda - totalPagado;
+      
+      const totalPagado = d.totalPagado || 0;
+      const total = d.total || 0;
+      const deudaActual = total - totalPagado;
 
-            deudas.push({
-              actividad: actividad.nombre,
-              fecha: actividad.fecha,
-              cantidad: asignacion.cantidad,
-              valorDeuda: valorDeuda,
-              totalPagado: totalPagado,
-              deudaActual: deudaActual,
-              actividadId: actividadId,
-            });
+      totalGeneral += deudaActual;
 
-            totalGeneral += deudaActual;
-          }
-        }
+      deudas.push({
+        actividad: d.actividadNombre,
+        fecha: d.fecha ? d.fecha.toDate() : new Date(0),
+        valorDeuda: total,
+        totalPagado: totalPagado,
+        deudaActual: deudaActual,
+        actividadId: doc.id
       });
-
-      promesas.push(promesa);
     });
 
-    await Promise.all(promesas); // ⏳ Esperar todas las asignaciones
+    // 🔽 Ordenar por fecha descendente
+    deudas.sort((a, b) => b.fecha - a.fecha);
 
-    deudas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    tabla.removeClass("d-none");
+    tablaBody.empty();
 
-    if (deudas.length > 0) {
-      tabla.removeClass("d-none");
-      tablaBody.empty();
+    // ===============================
+    // RENDER FILAS
+    // ===============================
+    deudas.forEach(d => {
+      const puedeAgregarPago = d.deudaActual > 0 ? 0 : 1;
 
-      deudas.forEach((d) => {
-        let debe;
-
-        if(d.deudaActual === 0){
-          debe = 1;
-        }else{
-          debe=0;
-        }
-        const fila = `
-          <tr>
-            <td>${d.actividad} (${d.fecha})</td>
-            <td class="text-end">$${d.valorDeuda.toLocaleString()}</td>
-            <td class="text-end">$${d.totalPagado.toLocaleString()}</td>
-            <td class="text-end fw-bold text-danger">$${d.deudaActual.toLocaleString()}</td>
-            <td class="text-center">
-              <button class="btn btn-sm btn-success btn-agregar-pago me-2" 
-                data-miembro-id="${miembroId}" 
-                data-debe="${debe}" 
-                data-actividad-id="${d.actividadId}">
-                Agregar pago
-              </button>
-              <button class="btn btn-sm btn-warning btn-editar-pago"
-                data-miembro-id="${miembroId}" 
-                data-actividad-id="${d.actividadId}">
-                Editar
-              </button>
-            </td>
-          </tr>
-        `;
-        tablaBody.append(fila);
-      });
-
-      tablaBody.append(`
-        <tr class="fw-bold table-secondary">
-          <td colspan="3" class="text-end">Total deuda actual:</td>
-          <td class="text-end text-danger">$${totalGeneral.toLocaleString()}</td>
-          <td></td>
+      const fila = `
+        <tr>
+          <td>${d.actividad}</td>
+          <td class="text-end">$${d.valorDeuda.toLocaleString()}</td>
+          <td class="text-end">$${d.totalPagado.toLocaleString()}</td>
+          <td class="text-end fw-bold text-danger">$${d.deudaActual.toLocaleString()}</td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-success btn-agregar-pago me-2"
+              data-miembro-id="${miembroId}"
+              data-debe="${puedeAgregarPago}"
+              data-actividad-id="${d.actividadId}">
+              Agregar pago
+            </button>
+            <button class="btn btn-sm btn-warning btn-editar-pago"
+              data-miembro-id="${miembroId}"
+              data-actividad-id="${d.actividadId}">
+              Editar
+            </button>
+          </td>
         </tr>
-      `);
-    } else {
-      tabla.addClass("d-none");
-      alert(`El miembro ${nombreMiembro} no tiene deudas.`);
-    }
+      `;
+      tablaBody.append(fila);
+    });
+
+    // ===============================
+    // TOTAL GENERAL
+    // ===============================
+    tablaBody.append(`
+      <tr class="fw-bold table-secondary">
+        <td colspan="3" class="text-end">Total deuda actual:</td>
+        <td class="text-end text-danger">$${totalGeneral.toLocaleString()}</td>
+        <td></td>
+      </tr>
+    `);
+
   } catch (error) {
     console.error("Error al cargar deudas:", error);
     alert("Hubo un error al obtener las deudas.");
   } finally {
-    ocultarLoading(); // ✅ Ocultar spinner siempre, incluso si hay error
+    ocultarLoading();
   }
 }
+
 async function cargarMiembros2() {
   const miembrosSelect = $("#miembrosSelect");
   miembrosSelect.empty();
@@ -619,90 +617,82 @@ function salidasFondo() {
 
 async function cargarEstadoFondo() {
   let entradasManuales = 0;
-  let entradasActividades = 0;
+  let gastoActividad = 0;
   let salidasManuales = 0;
-  let gastosActividades = 0;
+
+  let totalActividades = 0;
   let totalPagado = 0;
   let totalDeuda = 0;
-  let gananciaTotal = 0;
+  let totalGasto = 0;
 
   const db = firebase.firestore();
-
-  mostrarLoading(); // 🔄 Mostrar spinner
+  mostrarLoading();
 
   try {
     // 1. Entradas manuales
     const entradasSnap = await db.collection("fondoEntradas").get();
-    entradasSnap.forEach((doc) => {
-      entradasManuales += parseFloat(doc.data().cantidad || 0);
+    entradasSnap.forEach(doc => {
+      entradasManuales += Number(doc.data().cantidad || 0);
     });
 
     // 2. Salidas manuales
     const salidasSnap = await db.collection("fondoSalidas").get();
-    salidasSnap.forEach((doc) => {
-      salidasManuales += parseFloat(doc.data().cantidad || 0);
+    salidasSnap.forEach(doc => {
+      salidasManuales += Number(doc.data().cantidad || 0);
     });
 
-    // 3. Recorrer actividades
+    // 3. Ganancia de actividades
     const actividadesSnap = await db.collection("actividades").get();
+    actividadesSnap.forEach(doc => {
+      totalActividades += Number(doc.data().total || 0);
+      totalGasto += Number(doc.data().gasto || 0);
+    });
 
-    for (const actividadDoc of actividadesSnap.docs) {
-      const actividad = actividadDoc.data();
-      const actividadId = actividadDoc.id;
-      const precioUnidad = actividad.precioUnidad || 0;
+    // 4. Resumen financiero POR MIEMBRO
+    const miembrosSnap = await db.collection("miembros").get();
 
-      gananciaTotal += parseFloat(actividad.ganancia || 0);
-
-      // 3.1 Miembros asignados
-      const miembrosSnap = await db
+    for (const miembroDoc of miembrosSnap.docs) {
+      const actividadesSnap = await db
+        .collection("miembros")
+        .doc(miembroDoc.id)
         .collection("actividades")
-        .doc(actividadId)
-        .collection("miembrosActividad")
         .get();
 
-      miembrosSnap.forEach((doc) => {
-        const asignacion = doc.data();
-        const cantidad = asignacion.cantidad || 0;
-        const pagado = asignacion.totalPagado || 0;
+      actividadesSnap.forEach(doc => {
+        const a = doc.data();
 
-        const totalPorMiembro = cantidad * precioUnidad;
-        entradasActividades += totalPorMiembro;
+        const total = Number(a.total || 0);
+        const pagado = Number(a.totalPagado || 0);
+
         totalPagado += pagado;
-        totalDeuda += totalPorMiembro - pagado;
-      });
-
-      // 3.2 Gastos de actividad
-      const gastosSnap = await db
-        .collection("actividades")
-        .doc(actividadId)
-        .collection("gastos")
-        .get();
-
-      gastosSnap.forEach((doc) => {
-        gastosActividades += parseFloat(doc.data().monto || 0);
+        totalDeuda += (total - pagado);
       });
     }
+    const totalEntradas = entradasManuales + totalActividades;
+    const totalSalidas = totalGasto + salidasManuales;
+    // 5. Cálculos finales
+    const fondo = totalEntradas - totalSalidas;
+      
 
-    const totalEntradas = entradasManuales + gananciaTotal;
-    const totalSalidas = salidasManuales;
-    const saldo = totalEntradas - totalSalidas;
-    const efectivo = saldo - totalDeuda;
-
-    // Mostrar en pantalla
+    const efectivo = fondo - totalDeuda;
+    
+    // 6. Mostrar
     $("#entradasManuales").text(`$${entradasManuales.toLocaleString()}`);
-    $("#entradasActividades").text(`$${gananciaTotal.toLocaleString()}`);
+    $("#entradasActividades").text(`$${totalActividades.toLocaleString()}`);
     $("#totalEntradas").text(`$${totalEntradas.toLocaleString()}`);
 
+    $("#totalSalidaManual").text(`$${salidasManuales.toLocaleString()}`);
+    $("#totalGastos").text(`$${totalGasto.toLocaleString()}`);
     $("#totalSalidas").text(`$${totalSalidas.toLocaleString()}`);
 
-    $("#saldoFondo").text(`$${saldo.toLocaleString()}`);
+    $("#saldoFondo").text(`$${fondo.toLocaleString()}`);
     $("#dineroEfectivo").text(`$${efectivo.toLocaleString()}`);
     $("#deudasPendientes").text(`$${totalDeuda.toLocaleString()}`);
   } catch (error) {
     console.error("Error al calcular estado del fondo:", error);
     alert("Hubo un error al calcular el estado del fondo.");
   } finally {
-    ocultarLoading(); // ✅ Ocultar spinner pase lo que pase
+    ocultarLoading();
   }
 }
 
@@ -931,78 +921,63 @@ async function cargarSalidasFondoU() {
   }
 } 
 
-
 async function cargarResumenDeudas() {
-  // Mostrar loading y bloquear scroll
   mostrarLoading();
 
   const tablaBody = $("#tablaResumen tbody");
   tablaBody.empty();
 
+
   let totalDeudaGlobal = 0;
-  let totalPagosGlobal = 0;
 
   try {
     const miembrosSnapshot = await db.collection("miembros").get();
 
-    for (const miembroDoc of miembrosSnapshot.docs) {
-      const miembroId = miembroDoc.id;
+    if (miembrosSnapshot.empty) {
+      alert("No hay miembros registrados.");
+      return;
+    }
+
+    miembrosSnapshot.forEach((miembroDoc) => {
       const miembro = miembroDoc.data();
       const nombreCompleto = `${miembro.nombre} ${miembro.apellido || ""}`;
 
-      let deudaTotal = 0;
-      let pagosTotales = 0;
+      const resumen = miembro.resumen || {
+        total: 0,
+        totalPagado: 0
+      };
 
-      const actividadesSnapshot = await db.collection("actividades").get();
+      const total = Number(resumen.total || 0);
+      const pagado = Number(resumen.totalPagado || 0);
+      const deuda = total - pagado;
 
-      for (const actividadDoc of actividadesSnapshot.docs) {
-        const actividad = actividadDoc.data();
-        const actividadId = actividadDoc.id;
+      // 🔹 Acumular globales
 
-        const miembroActividadRef = db
-          .collection("actividades")
-          .doc(actividadId)
-          .collection("miembrosActividad")
-          .doc(miembroId);
+      totalDeudaGlobal += deuda;
 
-        const miembroActividadSnap = await miembroActividadRef.get();
-
-        if (miembroActividadSnap.exists) {
-          const asignacion = miembroActividadSnap.data();
-          const cantidad = asignacion.cantidad || 0;
-          const precioUnidad = actividad.precioUnidad || 0;
-          const totalPagado = asignacion.totalPagado || 0;
-
-          deudaTotal += cantidad * precioUnidad;
-          pagosTotales += totalPagado;
-        }
-      }
-
-      const saldo = deudaTotal - pagosTotales;
-
-      if (saldo > 0) {
+      // 🔹 Mostrar solo si debe algo
+      if (deuda > 0) {
         tablaBody.append(`
           <tr>
             <td>${nombreCompleto}</td>
-            <td class="text-end">$${deudaTotal.toLocaleString()}</td>
-            <td class="text-end">$${pagosTotales.toLocaleString()}</td>
-            <td class="text-end text-danger">$${saldo.toLocaleString()}</td>
+            <td class="text-end">$${total.toLocaleString()}</td>
+            <td class="text-end">$${pagado.toLocaleString()}</td>
+            <td class="text-end text-danger fw-bold">
+              $${deuda.toLocaleString()}
+            </td>
           </tr>
         `);
-
-        totalDeudaGlobal += deudaTotal;
-        totalPagosGlobal += pagosTotales;
       }
-    }
+    });
 
-    const totalSaldoGlobal = totalDeudaGlobal - totalPagosGlobal;
-    $("#totalSaldo").text(`$${totalSaldoGlobal.toLocaleString()}`);
+    // 🔹 Totales
+
+    $("#totalSaldo").text(`$${totalDeudaGlobal.toLocaleString()}`);
 
   } catch (error) {
     console.error("Error al cargar resumen de deudas:", error);
-    alert("Ocurrió un error al cargar las deudas.");
+    alert("Ocurrió un error al cargar el resumen.");
   } finally {
-    // Ocultar loading y reactivar scroll
     ocultarLoading();
   }
 }
@@ -1021,6 +996,7 @@ function ocultarLoading() {
     $(this).css("display", "none");
   });
 }
+
 function mostrarDiv(idDiv, boton) {
     // Ocultar todos los divs de contenido
     $(".contenido").addClass("d-none");
@@ -1031,6 +1007,39 @@ function mostrarDiv(idDiv, boton) {
     // Botón activo (opcional)
     $("#entradasM, #entradasA, #entradasMA").removeClass("active");
     $(boton).addClass("active");
+}
+
+function cargarInventario(){
+   
+
+    // Cargar utensilios en tiempo real
+    db.collection('utensilios').orderBy('nombre', 'asc').onSnapshot(snapshot => {
+      const tbody = $('#tablaUtensilios');
+      tbody.empty();
+
+      if (snapshot.empty) {
+        tbody.append(`<tr><td colspan="4" class="text-muted">No hay utensilios registrados.</td></tr>`);
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const u = doc.data();
+        const id = doc.id;
+
+        tbody.append(`
+          <tr data-id="${id}">
+            <td>${u.cantidad ?? '-'}</td>
+            <td>${u.nombre ?? '-'}</td>
+            <td>${u.descripcion ?? '-'}</td>
+            <td>${u.estado ?? '-'}</td>
+            <td class="editar-col" style="display: ${modoEdicion ? 'table-cell' : 'none'};">
+              <button class="btn btn-sm btn-outline-primary btnEditarFila me-1">Editar</button>
+              <button class="btn btn-sm btn-outline-danger btnEliminarFila">Eliminar</button>
+            </td>
+          </tr>
+        `);
+      });
+    });
 }
 
 

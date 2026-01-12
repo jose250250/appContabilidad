@@ -1,0 +1,89 @@
+<body class="bg-light">
+
+  <div class="container mt-5">
+    
+    <!-- ENCABEZADO Y BOTONES -->
+   <div class="d-flex flex-column align-items-start mb-4">
+  <!-- Título arriba -->
+  <h3 class="fw-bold text-primary mb-3">Inventario general de la cocina</h3>
+  
+  <!-- Botones abajo con espacio entre ellos -->
+  <div class="d-flex flex-wrap gap-3">
+    <button id="btnEditar" class="btn btn-warning">✏️ Editar</button>
+    <button id="btnNuevo" class="btn btn-success">➕ Ingresar nuevo</button>
+    <button id="btnAtras" class="btn btn-secondary">⬅️ Atrás</button>
+  </div>
+</div>
+
+    <!-- TABLA DE UTENSILIOS -->
+    <div class="card shadow-lg rounded-4">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover align-middle text-center">
+            <thead class="table-primary">
+              <tr>
+                <th>Cantidad</th>
+                <th>Nombre</th>
+                <th>Descripcion</th>
+                <th>Estado</th>
+                <th class="editar-col" style="display:none;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaUtensilios">
+              <!-- Los utensilios se cargan aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+   <!-- MODAL PARA EDITAR UTENSILIO -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content rounded-4">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title">Editar utensilio</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="formEditar">
+            <input type="hidden" id="editId">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="editCantidad" class="form-label">Cantidad</label>
+                <input type="number" class="form-control" id="editCantidad" required>
+              </div>
+              <div class="col-md-5">
+                <label for="editNombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="editNombre" required>
+              </div>
+              <div class="col-md-5">
+                <label for="editDescripcion" class="form-label">Descripcion</label>
+                <input type="text" class="form-control" id="editDescripcion" required>
+              </div>
+              <div class="col-md-4">
+                <label for="editValor" class="form-label">Valor estimado</label>
+                <input type="number" class="form-control" id="editValor" required>
+              </div>
+              <div class="col-md-6">
+                <label for="editEstado" class="form-label">Estado</label>
+                <select class="form-select" id="editEstado" required>
+                  <option value="bueno">Bueno</option>
+                  <option value="regular">Regular</option>
+                  <option value="dañado">Dañado</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnGuardarCambios" class="btn btn-success">💾 Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+  <script src="/assets/js/admin/inventario.js"></script>

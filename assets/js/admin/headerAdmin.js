@@ -1,4 +1,6 @@
 $(function(){
+   
+
   window.setTimeout(function(){
    $("#user-name").text(mail);
    $("#user-role").text(rol);

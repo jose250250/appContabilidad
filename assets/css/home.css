@@ -24,7 +24,14 @@
     }
 
     body {
-      background-color: #d1deeb;
+      background-color: #f3f1f2;
+    }
+
+    #footerid {
+      background-color: lightgreen;
+    }
+    #header{
+      background-color: #0d6efd !important
     }
     .botones-container {
       height: 100vh;
@@ -46,13 +53,17 @@
      } 
      #moduloPagos{
       background-color: #387feb83;
+      border: 2px solid #387feb; /* línea del borde */
      }
      #moduloFondo{
       background-color: rgba(107, 219, 103, 0.514);
+      border: 2px solid #10ca28; /* línea del borde */
      }
      #moduloActividades{
       background-color: rgba(233, 204, 43, 0.548);
+      border: 2px solid #f7fa39; /* línea del borde */
      }
      #moduloMiembros{
       background-color: rgba(220, 20, 60, 0.479);
+      border: 2px solid #f01e1e; /* línea del borde */
      }

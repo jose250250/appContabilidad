@@ -1,8 +1,9 @@
-$(function(){
-    cargarMiembros2();
-})
+$(function () {
+  cargarMiembros2();
+});
 
-var miembrosSelect = $("#miembrosSelect"); // ✅ ahora es objeto jQuery
+var miembrosSelect = $("#miembrosSelect");
+
 miembrosSelect.off("change").on("change", function () {
   const miembroId = $(this).val();
   const miembroNombre = $(this).find("option:selected").text();
@@ -10,60 +11,60 @@ miembrosSelect.off("change").on("change", function () {
     cargarDeudas(miembroId, miembroNombre);
   }
 });
-$("#btnHistorialPagos").click(function(){
-    loadPage("historialPagos", "admin/");
-})
-$("#atrasPa").click(function(){
+
+$("#btnHistorialPagos").click(function () {
+  loadPage("historialPagos", "admin/");
+});
+
+$("#atrasPa").click(function () {
   accionPago = null;
   miembroIdSeleccionado = null;
   actividadIdSeleccionada = null;
   totalActualPagado = 0;
-  $("#inputMonto").val(""); // limpiar el campo también si quieres
+  $("#inputMonto").val("");
+  loadPage("frontPagos", "admin/");
+});
 
-  
-    loadPage("frontPagos", "admin/");
-})
+var modal = new bootstrap.Modal(document.getElementById("modalMonto"));
 
+// ===============================
+// VARIABLES GLOBALES
+// ===============================
+var accionPago = "";
+var miembroIdSeleccionado = "";
+var actividadIdSeleccionada = "";
+var totalActualPagado = 0;
 
-var modal = new bootstrap.Modal(document.getElementById('modalMonto'));
-
-// Declarar una vez al principio del script
-var accionPago;
-var miembroIdSeleccionado;
-var actividadIdSeleccionada;
-var totalActualPagado;
-var miembroDebe;
-
+// ===============================
+// AGREGAR PAGO
+// ===============================
 $("#tablaDeudas").on("click", ".btn-agregar-pago", function () {
-
   accionPago = "agregar";
   miembroIdSeleccionado = $(this).data("miembro-id");
   actividadIdSeleccionada = $(this).data("actividad-id");
-  miembroDebe = $(this).data("debe"); 
-  if(miembroDebe === 0){
-  $("#modalMontoLabel").text("Ingrese el monto del abono");
+
+  $("#modalMontoLabel").text("Ingrese el monto del pago");
   $("#inputMonto").val("").attr("min", 0);
   modal.show();
-  }
-  else{
-    alert("El miembro no tiene pagos pendiente en esta actividad");
-  }
 });
 
+// ===============================
+// EDITAR PAGO (AJUSTE)
+// ===============================
 $("#tablaDeudas").on("click", ".btn-editar-pago", async function () {
   accionPago = "editar";
   miembroIdSeleccionado = $(this).data("miembro-id");
   actividadIdSeleccionada = $(this).data("actividad-id");
 
-  const miembroRef = firebase.firestore()
+  const ref = firebase.firestore()
+    .collection("miembros")
+    .doc(miembroIdSeleccionado)
     .collection("actividades")
-    .doc(actividadIdSeleccionada)
-    .collection("miembrosActividad")
-    .doc(miembroIdSeleccionado);
+    .doc(actividadIdSeleccionada);
 
-  const doc = await miembroRef.get();
+  const doc = await ref.get();
   if (!doc.exists) {
-    alert("No se encontró el registro del miembro.");
+    alert("No existe el registro.");
     return;
   }
 
@@ -73,57 +74,91 @@ $("#tablaDeudas").on("click", ".btn-editar-pago", async function () {
   modal.show();
 });
 
+// ===============================
+// SUBMIT MODAL
+// ===============================
 $("#formModalMonto").submit(async function (e) {
   e.preventDefault();
-  let monto = parseFloat($("#inputMonto").val());
 
+  const monto = parseFloat($("#inputMonto").val());
   if (isNaN(monto) || monto < 0) {
-    alert("Monto inválido.");
+    alert("Monto inválido");
     return;
   }
+
   mostrarLoading();
-  const miembroRef = firebase.firestore()
-    .collection("actividades")
-    .doc(actividadIdSeleccionada)
-    .collection("miembrosActividad")
-    .doc(miembroIdSeleccionado);
+
+  const db = firebase.firestore();
+  const miembroRef = db.collection("miembros").doc(miembroIdSeleccionado);
+  const actividadRef = miembroRef.collection("actividades").doc(actividadIdSeleccionada);
 
   try {
-    if (accionPago === "agregar") {
-      await firebase.firestore().runTransaction(async (transaction) => {
-        const doc = await transaction.get(miembroRef);
-        if (!doc.exists) throw "El documento del miembro no existe.";
+    await db.runTransaction(async (tx) => {
+      const actividadSnap = await tx.get(actividadRef);
+      const miembroSnap = await tx.get(miembroRef);
 
-        const data = doc.data();
-        const totalPagadoAnterior = data.totalPagado || 0;
-        const nuevoTotalPagado = totalPagadoAnterior + monto;
+      if (!actividadSnap.exists) throw "Actividad no encontrada";
 
-        transaction.update(miembroRef, { totalPagado: nuevoTotalPagado });
+      const act = actividadSnap.data();
+      const resumen = miembroSnap.data().resumen || { total: 0, totalPagado: 0 };
 
-        const nuevoPagoRef = miembroRef.collection("pagos").doc();
-        transaction.set(nuevoPagoRef, {
-          monto,
-          fecha: new Date(),
-          actividadId: actividadIdSeleccionada
+      let deltaPagado = 0;
+
+      // ===============================
+      // AGREGAR PAGO
+      // ===============================
+      if (accionPago === "agregar") {
+        const deudaActual = (act.total || 0) - (act.totalPagado || 0);
+        const montoAplicado = Math.min(monto, deudaActual);
+
+        deltaPagado = montoAplicado;
+
+        tx.update(actividadRef, {
+          totalPagado: (act.totalPagado || 0) + montoAplicado
         });
-      });
-      alert("Pago registrado correctamente.");
-    } else if (accionPago === "editar") {
-      await miembroRef.update({ totalPagado: monto });
-      alert("Total pagado actualizado.");
-    }
 
+        tx.set(actividadRef.collection("pagos").doc(), {
+          monto: montoAplicado,
+          tipo: "pago",
+          fecha: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      // ===============================
+      // EDITAR PAGO (AJUSTE)
+      // ===============================
+      if (accionPago === "editar") {
+        const diferencia = monto - (act.totalPagado || 0);
+        deltaPagado = diferencia;
+
+        tx.update(actividadRef, {
+          totalPagado: monto
+        });
+
+        tx.set(actividadRef.collection("pagos").doc(), {
+          monto: diferencia,
+          tipo: "ajuste",
+          fecha: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+
+      // ===============================
+      // ACTUALIZAR RESUMEN DEL MIEMBRO
+      // ===============================
+      tx.update(miembroRef, {
+        "resumen.totalPagado": (resumen.totalPagado || 0) + deltaPagado
+      });
+    });
+
+    alert("Pago actualizado correctamente");
     modal.hide();
     cargarDeudas(miembroIdSeleccionado);
 
-  } catch (error) {
-    console.error("Error al guardar:", error);
-    alert("No se pudo guardar el monto.");
-  }
-  finally{
+  } catch (err) {
+    console.error(err);
+    alert("Error al procesar el pago");
+  } finally {
     ocultarLoading();
   }
 });
-
-
 

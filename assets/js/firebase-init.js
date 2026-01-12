@@ -1,17 +1,21 @@
-// firebase-init.js
+// Configuración de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyBY5k9J-3zyKluZp04bi5n5-eRcEgBQQ7s",
-  authDomain: "contiglesia.firebaseapp.com",
-  projectId: "contiglesia",
-  storageBucket: "contiglesia.appspot.com",
-  messagingSenderId: "824452265660",
-  appId: "1:824452265660:web:832d8cd04343c3a7e2c2b9",
-  measurementId: "G-7WCZFJLN4B"
+  apiKey: "AIzaSyAzYMR1lfm4HpvGPo6ZtPWi6Te40nfdi5U",
+  authDomain: "appcontabilidad2026.firebaseapp.com",
+  projectId: "appcontabilidad2026",
+  storageBucket: "appcontabilidad2026.appspot.com",
+  messagingSenderId: "355924758992",
+  appId: "1:355924758992:web:127e644b20c146ac8429d5"
 };
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase (COMPAT)
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+
+}
 
 // Referencias globales
-const auth = firebase.auth();
-const db = firebase.firestore();
+window.auth = firebase.auth();
+window.db = firebase.firestore();
+
+console.log("🔥 Firebase inicializado correctamente");

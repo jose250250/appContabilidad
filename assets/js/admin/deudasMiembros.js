@@ -1,11 +1,14 @@
-$(function(){
-  // Llamar al cargar la página
-cargarResumenDeudas();
-})
+$(function () {
+  cargarResumenDeudas();
+});
 
 $("#atrasd").click(function () {
   loadPage("frontPagos", "admin/");
 });
+
+// ===============================
+// EXPORTAR A PDF
+// ===============================
 async function exportarTablaPDF() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
@@ -23,31 +26,43 @@ async function exportarTablaPDF() {
     body.push(fila);
   });
 
-  const totalRow = [
-    "Totales:",
+  // 🔹 Totales al final
+  body.push([
+    "Totales",
     $("#totalDeuda").text(),
     $("#totalPagos").text(),
-    $("#totalSaldo").text()
-  ];
-  body.push(totalRow);
+    $("#totalSaldo").text(),
+  ]);
 
   doc.autoTable({
     startY: 20,
     head: head,
     body: body,
-    theme: "grid"
+    theme: "grid",
   });
 
   doc.save("resumen-deudas.pdf");
 }
+
+// ===============================
+// IMPRIMIR
+// ===============================
 function imprimirTabla() {
   const tablaHtml = document.getElementById("tablaResumen")?.outerHTML || "";
+
+  if (!tablaHtml) {
+    alert("No hay datos para imprimir.");
+    return;
+  }
+
   const estilo = `
     <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-family: Arial, sans-serif;
       }
       th, td {
         border: 1px solid #000;
@@ -59,22 +74,31 @@ function imprimirTabla() {
       }
       h2 {
         text-align: center;
+        margin-bottom: 15px;
       }
     </style>
   `;
 
-  const ventanaImpresion = window.open('', '_blank');
-  if (ventanaImpresion) {
-    ventanaImpresion.document.head.innerHTML = `<title>Resumen de Deudas</title>${estilo}`;
-    ventanaImpresion.document.body.innerHTML = `
-      <h2>Resumen de Deudas por Miembro</h2>
-      ${tablaHtml}
-    `;
-    ventanaImpresion.document.close();
-    ventanaImpresion.focus();
-    ventanaImpresion.print();
-    ventanaImpresion.close();
-  }
+  const ventanaImpresion = window.open("", "_blank");
+  if (!ventanaImpresion) return;
+
+  ventanaImpresion.document.open();
+  ventanaImpresion.document.write(`
+    <html>
+      <head>
+        <title>Resumen de Deudas</title>
+        ${estilo}
+      </head>
+      <body>
+        <h2>Resumen de Deudas por Miembro</h2>
+        ${tablaHtml}
+      </body>
+    </html>
+  `);
+  ventanaImpresion.document.close();
+  ventanaImpresion.focus();
+  ventanaImpresion.print();
+  ventanaImpresion.close();
 }
- 
+
 

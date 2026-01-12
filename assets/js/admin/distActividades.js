@@ -2,173 +2,231 @@ var selectActividad = $('#selectActividad');
 var tablaMiembros = $('#tablaMiembros');
 var formAsignaciones = $('#formAsignaciones');
 var precioUnidad = 0;
+var cantAct = 0;
 
-// 1. Cargar actividades en el select
+// ===============================
+// 1. CARGAR ACTIVIDADES
+// ===============================
 db.collection("actividades").orderBy("fecha", "desc").get().then(snapshot => {
   snapshot.forEach(doc => {
-    let data = doc.data();
-    selectActividad.append(`<option value="${doc.id}">${data.nombre} (${data.fecha})</option>`);
+    const data = doc.data();
+    selectActividad.append(
+      `<option value="${doc.id}">${data.nombre} (${data.fecha})</option>`
+    );
   });
 });
 
-// 2. Al seleccionar actividad
+// ===============================
+// 2. SELECCIONAR ACTIVIDAD
+// ===============================
 selectActividad.change(async function () {
-  let actividadId = $(this).val();
+  const actividadId = $(this).val();
   if (!actividadId) {
     formAsignaciones.hide();
     return;
   }
+   try {
+    mostrarLoading();
 
-  let miembrosSnapshot = await db.collection("miembros").get();
-  let asignacionesSnapshot = await db.collection("actividades").doc(actividadId).collection("miembrosActividad").get();
-  let docSnapshot = await db.collection("actividades").doc(actividadId).get();
-
-  precioUnidad = 0;
-  if (docSnapshot.exists) {
-    precioUnidad = docSnapshot.data().precioUnidad;
-  } else {
-    console.log("El documento no existe.");
+  const actividadDoc = await db.collection("actividades").doc(actividadId).get();
+  if (!actividadDoc.exists) {
+    alert("Actividad no encontrada");
+    return;
   }
 
-  let asignaciones = {};
-  asignacionesSnapshot.forEach(doc => {
-    asignaciones[doc.id] = doc.data().cantidad;
-  });
+  precioUnidad = actividadDoc.data().precioUnidad || 0;
+  cantAct = actividadDoc.data().cantUnidades || 0;
+  $("#cant").val(cantAct);
+  $("#precio").val(precioUnidad);
 
-  // ✅ Convertir a array y ordenar por nombre
+  const miembrosSnapshot = await db.collection("miembros").get();
+  tablaMiembros.find('tbody').empty();
+
   let miembros = [];
   miembrosSnapshot.forEach(doc => {
-    let data = doc.data();
+    const d = doc.data();
     miembros.push({
       id: doc.id,
-      nombre: data.nombre || '',
-      apellido: data.apellido || ''
+      nombre: d.nombre || '',
+      apellido: d.apellido || ''
     });
   });
 
-  miembros.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  miembros.sort((a, b) =>
+    a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' })
+  );
 
-  // 🧹 Limpiar tabla
-  tablaMiembros.find('tbody').empty();
+  for (const miembro of miembros) {
+    const actividadMiembroDoc = await db
+      .collection("miembros")
+      .doc(miembro.id)
+      .collection("actividades")
+      .doc(actividadId)
+      .get();
 
-  // 📝 Renderizar miembros ordenados
-  miembros.forEach(miembro => {
-    let cantidad = asignaciones[miembro.id] || "";
-    let deuda = cantidad ? (cantidad * precioUnidad).toFixed(2) : "0.00";
+    let cantidad = "";
+    let total = "0.00";
+
+    if (actividadMiembroDoc.exists) {
+      cantidad = actividadMiembroDoc.data().cantidad || 0;
+      total = (cantidad * precioUnidad).toFixed(2);
+    }
 
     tablaMiembros.find('tbody').append(`
       <tr>
         <td>${miembro.nombre} ${miembro.apellido}</td>
         <td>
-          <input type="text" min="0" inputmode="decimal" class="form-control cantidad-miembro" data-id="${miembro.id}" value="${cantidad}">
+          <input type="text" class="form-control cantidad-miembro"
+            data-id="${miembro.id}" value="${cantidad}">
         </td>
         <td>
-          <input type="number" min="0" class="form-control total" data-id="${miembro.id}" value="${deuda}" readonly>
+          <input type="number" class="form-control total"
+            data-id="${miembro.id}" value="${total}" readonly>
         </td>
       </tr>
     `);
-  });
+  }
 
-  actualizarTotalesGlobales(); // Calcula el total al cargar
-
+  actualizarTotalesGlobales();
   formAsignaciones.show();
+}
+
+ catch (err) {
+    console.error(err);
+    alert("Error al cargar actividad");
+  } finally {
+    ocultarLoading();
+  }
 });
 
-// 3. Recalcular totales individuales y globales al cambiar cantidad
+// ===============================
+// 3. RECÁLCULO EN TIEMPO REAL
+// ===============================
 tablaMiembros.on('input', '.cantidad-miembro', function () {
-  let miembroId = $(this).data('id');
-  let cantidadInput = $(this).val().replace(',', '.');
-  let cantidad = parseFloat(cantidadInput) || 0;
-  let total = cantidad * precioUnidad;
-  $(`.total[data-id="${miembroId}"]`).val(total.toFixed(2));
+  const miembroId = $(this).data('id');
+  const cantidad = parseFloat($(this).val().replace(',', '.')) || 0;
+  const total = cantidad * precioUnidad;
 
+  $(`.total[data-id="${miembroId}"]`).val(total.toFixed(2));
   actualizarTotalesGlobales();
 });
 
-// 4. Función para actualizar totales generales
+// ===============================
+// 4. TOTALES GENERALES
+// ===============================
 function actualizarTotalesGlobales() {
   let totalUnidades = 0;
   let totalPlata = 0;
 
   $('.cantidad-miembro').each(function () {
-    let cantidadInput = $(this).val().replace(',', '.');
-    let cantidad = parseFloat(cantidadInput) || 0;
+    const cantidad = parseFloat($(this).val().replace(',', '.')) || 0;
     totalUnidades += cantidad;
     totalPlata += cantidad * precioUnidad;
   });
 
   $('#totalUnidades').text(totalUnidades);
   $('#totalPlata').text(totalPlata.toFixed(2));
+
 }
 
-// 5. Guardar asignaciones
+
+
+// ===============================
+// 5. GUARDAR ASIGNACIONES
+// ===============================
 formAsignaciones.submit(async function (e) {
   e.preventDefault();
-  let actividadId = selectActividad.val();
-  let actividadRef = db.collection("actividades").doc(actividadId);
+
+  const actividadId = selectActividad.val();
+  const actividadNombre = selectActividad.find("option:selected").text();
 
   try {
     mostrarLoading();
-    const confirmaciones = [];
 
-    const cambios = [];
+    for (const input of $('.cantidad-miembro').toArray()) {
+      const miembroId = $(input).data('id');
+      const cantidad = parseFloat($(input).val().replace(',', '.')) || 0;
+      const totalNuevo = cantidad * precioUnidad;
 
-    const promises = $('.cantidad-miembro').map(async function () {
-      const miembroId = $(this).data('id');
-      const cantidadInput = $(this).val().replace(',', '.');
-      const nuevaCantidad = parseFloat(cantidadInput) || 0;
-      const nuevaDeuda = nuevaCantidad * precioUnidad;
-      const docRef = actividadRef.collection("miembrosActividad").doc(miembroId);
+      const miembroRef = db.collection("miembros").doc(miembroId);
+      const actividadRef = miembroRef.collection("actividades").doc(actividadId);
 
-      const doc = await docRef.get();
+      await db.runTransaction(async (tx) => {
+        const actSnap = await tx.get(actividadRef);
+        const miembroSnap = await tx.get(miembroRef);
 
-      if (doc.exists) {
-        const data = doc.data();
-        const cantidadAnterior = data.cantidad || 0;
-        const tienePagos = (data.totalPagado || 0) > 0;
+        const resumen = miembroSnap.data().resumen || {
+          total: 0,
+          totalPagado: 0
+        };
 
-        if (cantidadAnterior !== nuevaCantidad) {
-          if (tienePagos) {
-            // Se guarda para confirmación
-            cambios.push({ miembroId, nuevaCantidad, nuevaDeuda, docRef });
-          } else {
-            // No hay pagos, actualizar directamente
-            await docRef.update({ cantidad: nuevaCantidad, deuda: nuevaDeuda });
+        let deltaTotal = 0;
+
+        // ===============================
+        // NO TOMÓ ACTIVIDAD
+        // ===============================
+        if (cantidad === 0 && actSnap.exists) {
+          const act = actSnap.data();
+
+          if ((act.totalPagado || 0) === 0) {
+            deltaTotal = -act.total;
+            tx.delete(actividadRef);
           }
         }
-      } else {
-        // Documento nuevo, se crea
-        await docRef.set({ cantidad: nuevaCantidad, deuda: nuevaDeuda });
-      }
-    }).get();
 
-    await Promise.all(promises);
+        // ===============================
+        // TOMÓ / EDITÓ ACTIVIDAD
+        // ===============================
+        if (cantidad > 0) {
+          if (actSnap.exists) {
+            const act = actSnap.data();
+            deltaTotal = totalNuevo - act.total;
 
-    if (cambios.length > 0) {
-      const confirmar = confirm("Algunos miembros tienen pagos registrados. ¿Deseas cambiar igualmente sus asignaciones sin borrar sus pagos?");
-      if (!confirmar) return;
+            tx.update(actividadRef, {
+              cantidad,
+              precioUnidad,
+              total: totalNuevo
+            });
+          } else {
+            deltaTotal = totalNuevo;
 
-      for (const cambio of cambios) {
-        await cambio.docRef.update({
-          cantidad: cambio.nuevaCantidad,
-          deuda: cambio.nuevaDeuda
-          // NO se toca totalPagado ni se borra nada
-        });
-      }
+            tx.set(actividadRef, {
+              actividadId,
+              actividadNombre,
+              cantidad,
+              precioUnidad,
+              total: totalNuevo,
+              totalPagado: 0,
+              fecha: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        }
+
+        // ===============================
+        // ACTUALIZAR RESUMEN DEL MIEMBRO
+        // ===============================
+        if (deltaTotal !== 0) {
+          tx.update(miembroRef, {
+            "resumen.total": (resumen.total || 0) + deltaTotal
+          });
+        }
+      });
     }
 
-    alert("Asignaciones guardadas correctamente.");
+    alert("Asignaciones guardadas correctamente");
+
   } catch (err) {
-    console.error("Error al guardar asignaciones:", err);
-    alert("Ocurrió un error.");
-  }
-  finally{
+    console.error(err);
+    alert("Error al guardar asignaciones");
+  } finally {
     ocultarLoading();
   }
 });
 
 
-// 6. Botón atrás
+// ===============================
+// 6. ATRÁS
+// ===============================
 $("#atras").click(function () {
   loadPage("frontActividades", "admin/");
 });

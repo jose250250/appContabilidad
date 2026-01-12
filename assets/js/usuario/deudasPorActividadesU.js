@@ -1,31 +1,37 @@
-// assets/js/admin/deudasPorActividades.js
 $(document).ready(() => {
+  mostrarLoading();
   const db = firebase.firestore();
 
-  // Cargar actividades en el select
-var selectActividad = $("#selectActividad");
-selectActividad.empty(); // Limpia el select
-selectActividad.append(`<option value="">-- Seleccione --</option>`);
+  // ===============================
+  // CARGAR ACTIVIDADES EN SELECT
+  // ===============================
+  const selectActividad = $("#selectActividad");
+  selectActividad.empty();
+  selectActividad.append(`<option value="">-- Seleccione --</option>`);
 
-db.collection("actividades")
-  .orderBy("fecha", "desc")
-  .get()
-  .then((snapshot) => {
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      const nombre = data.nombre || "Sin nombre";
-      const fechaTexto = data.fecha || "Sin fecha";
-      selectActividad.append(`
-        <option value="${doc.id}">${nombre} (${fechaTexto})</option>
-      `);
+  db.collection("actividades")
+    .orderBy("fecha", "desc")
+    .get()
+    .then((snapshot) => {
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        selectActividad.append(`
+          <option value="${doc.id}">
+            ${data.nombre || "Sin nombre"} (${data.fecha || "Sin fecha"})
+          </option>
+        `);
+      });
+      ocultarLoading();
+    })
+    .catch((error) => {
+      console.error("Error cargando actividades:", error);
+      ocultarLoading();
     });
-  })
-  .catch((error) => {
-    console.error("Error cargando actividades:", error);
-  });
 
-  // Al cambiar la actividad
-  $("#selectActividad").on("change", function () {
+  // ===============================
+  // CAMBIO DE ACTIVIDAD
+  // ===============================
+  selectActividad.on("change", function () {
     const actividadId = $(this).val();
     if (actividadId) {
       cargarResumenActividad(actividadId);
@@ -34,23 +40,19 @@ db.collection("actividades")
     }
   });
 
-  // Botón "Ver todos"
   $("#btnVerTodos").on("click", () => {
     $("#cardTodos").toggleClass("d-none");
   });
 
-  // Botón "Atrás"
-  $("#btnVolver").on("click", function () {
-    loadPage("frontActividadesU", "usuario/");
+  $("#btnVolver").on("click", () => {
+    loadPage("frontPagos", "admin/");
   });
 
-  // Función principal
-  function cargarResumenActividad(actividadId) {
+  // ===============================
+  // RESUMEN POR ACTIVIDAD (ADAPTADO)
+  // ===============================
+  async function cargarResumenActividad(actividadId) {
     mostrarLoading();
-
-    const miembrosRef = db.collection("miembros");
-    const actividadRef = db.collection("actividades").doc(actividadId);
-    const asignacionesRef = actividadRef.collection("miembrosActividad");
 
     $("#tablaDeudores tbody").empty();
     $("#tablaTodos tbody").empty();
@@ -58,90 +60,101 @@ db.collection("actividades")
     let totalTodos = 0;
     let totalDeudores = 0;
 
-    actividadRef.get().then((doc) => {
-      const actividad = doc.data();
+    try {
+      // 🔹 Obtener actividad (precio)
+      const actividadSnap = await db.collection("actividades").doc(actividadId).get();
+      if (!actividadSnap.exists) {
+        alert("La actividad no existe");
+        return;
+      }
+
+      const actividad = actividadSnap.data();
       const precioUnidad = actividad.precioUnidad || 0;
 
-      asignacionesRef.get().then(async (snapshot) => {
-        const promesas = snapshot.docs.map(async (asigDoc) => {
-          const asig = asigDoc.data();
-          const miembroId = asigDoc.id;
+      // 🔹 Obtener miembros
+      const miembrosSnap = await db.collection("miembros").get();
 
-          const miembroSnap = await miembrosRef.doc(miembroId).get();
-          const miembro = miembroSnap.data() || {};
-          const nombreCompleto = `${miembro.nombre} ${miembro.apellido}`.trim();
+      const filasTodos = [];
+      const filasDeudores = [];
 
-          const cantidad = asig.cantidad || 0;
-          const total = cantidad * precioUnidad;
-          const pagado = asig.totalPagado || 0;
-          const saldo = total - pagado;
+      for (const miembroDoc of miembrosSnap.docs) {
+        const miembroId = miembroDoc.id;
+        const miembro = miembroDoc.data();
+        const nombreCompleto = `${miembro.nombre} ${miembro.apellido || ""}`.trim();
 
-          const fila = `
-            <tr>
-              <td>${nombreCompleto}</td>
-              <td class="text-end">${cantidad}</td>
-              <td class="text-end">$${total.toLocaleString()}</td>
-              <td class="text-end">$${pagado.toLocaleString()}</td>
-              <td class="text-end fw-bold ${saldo > 0 ? "text-danger" : "text-success"}">
-                $${saldo.toLocaleString()}
-              </td>
-            </tr>
-          `;
-          if (cantidad > 0){
-          $("#tablaTodos tbody").append(fila);
-          totalTodos += saldo;
-           }
-          if (saldo > 0) {
-            $("#tablaDeudores tbody").append(fila);
-            totalDeudores += saldo;
-          }
-        });
+        // 🔹 Buscar asignación DEL MIEMBRO
+        const asignacionRef = db
+          .collection("miembros")
+          .doc(miembroId)
+          .collection("actividades")
+          .doc(actividadId);
 
-        await Promise.all(promesas);
+        const asignacionSnap = await asignacionRef.get();
+        if (!asignacionSnap.exists) continue;
 
-        // Fila de total para tabla de deudores
-        if (totalDeudores > 0) {
-          $("#tablaDeudores tbody").append(`
-            <tr class="table-warning fw-bold">
-              <td colspan="4" class="text-end">Total Deuda:</td>
-              <td class="text-end text-danger">$${totalDeudores.toLocaleString()}</td>
-            </tr>
-          `);
+        const asignacion = asignacionSnap.data();
+        const cantidad = asignacion.cantidad || 0;
+        const total = cantidad * precioUnidad;
+        const pagado = asignacion.totalPagado || 0;
+        const saldo = total - pagado;
+
+        if (cantidad <= 0) continue;
+
+        const filaHTML = `
+          <tr>
+            <td>${nombreCompleto}</td>
+            <td class="text-end">${cantidad}</td>
+            <td class="text-end">$${total.toLocaleString()}</td>
+            <td class="text-end">$${pagado.toLocaleString()}</td>
+            <td class="text-end fw-bold ${saldo > 0 ? "text-danger" : "text-success"}">
+              $${saldo.toLocaleString()}
+            </td>
+          </tr>
+        `;
+
+        filasTodos.push({ nombreCompleto, filaHTML });
+        totalTodos += saldo;
+
+        if (saldo > 0) {
+          filasDeudores.push({ nombreCompleto, filaHTML });
+          totalDeudores += saldo;
         }
+      }
 
-        // Fila de total para tabla de todos
-        $("#tablaTodos tbody").append(`
-          <tr class="table-success fw-bold">
-            <td colspan="4" class="text-end">Total Saldo (Todos):</td>
-            <td class="text-end">$${totalTodos.toLocaleString()}</td>
+      // 🔹 Ordenar alfabéticamente
+      filasTodos.sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
+      filasDeudores.sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto));
+
+      // 🔹 Renderizar tablas
+      filasTodos.forEach(f => $("#tablaTodos tbody").append(f.filaHTML));
+      $("#tablaTodos tbody").append(`
+        <tr class="table-success fw-bold">
+          <td colspan="4" class="text-end">Total Saldo (Todos):</td>
+          <td class="text-end">$${totalTodos.toLocaleString()}</td>
+        </tr>
+      `);
+
+      filasDeudores.forEach(f => $("#tablaDeudores tbody").append(f.filaHTML));
+      if (totalDeudores > 0) {
+        $("#tablaDeudores tbody").append(`
+          <tr class="table-warning fw-bold">
+            <td colspan="4" class="text-end">Total Deuda:</td>
+            <td class="text-end text-danger">$${totalDeudores.toLocaleString()}</td>
           </tr>
         `);
+      }
 
-        ocultarLoading();
-      }).catch((err) => {
-        console.error("Error cargando asignaciones:", err);
-        ocultarLoading();
-      });
-    }).catch((err) => {
-      console.error("Error cargando actividad:", err);
+    } catch (err) {
+      console.error("Error cargando resumen:", err);
+      alert("Error al cargar resumen de la actividad");
+    } finally {
       ocultarLoading();
-    });
+    }
   }
 
   function limpiarTablas() {
     $("#tablaDeudores tbody").empty();
     $("#tablaTodos tbody").empty();
-    $("#tablaTodosCard").addClass("d-none");
-  }
-
-  // Loading functions (asegúrate que #loadingOverlay existe en tu HTML)
-  function mostrarLoading() {
-    $("body").css("overflow", "hidden");
-    $("#loadingOverlay").fadeIn(200);
-  }
-
-  function ocultarLoading() {
-    $("body").css("overflow", "auto");
-    $("#loadingOverlay").fadeOut(200);
+    $("#cardTodos").addClass("d-none");
   }
 });

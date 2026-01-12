@@ -25,6 +25,7 @@ $("#formCrearUsuario").on("submit", function (e) {
         rol: rol,
         miembroId: miembroId,
         creado: firebase.firestore.FieldValue.serverTimestamp()
+
       });
     })
     .then(() => {
